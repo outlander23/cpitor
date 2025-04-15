@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri"
+    
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
