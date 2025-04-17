@@ -1,58 +1,83 @@
-import { FaChevronRight } from "react-icons/fa";
-import { useEditor } from "../../context/EditorContext";
+import { useEffect, useState } from "react";
+import { homeDir, resolve } from "@tauri-apps/api/path";
+import { readDir } from "@tauri-apps/plugin-fs";
 
-export default function FileExplorer() {
-  const { showFileExplorer } = useEditor();
-  
-  if (!showFileExplorer) return null;
-  
+function FileBrowser() {
+  const [files, setFiles] = useState([]);
+  const [currentPath, setCurrentPath] = useState("");
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function init() {
+      try {
+        const home = await homeDir();
+        setCurrentPath(home);
+      } catch (error) {
+        setError("Failed to initialize: " + error.message);
+        console.error("Init error:", error);
+      }
+    }
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (!currentPath) return;
+
+    async function fetchFiles() {
+      try {
+        const contents = await readDir(currentPath);
+        const items = [
+          { name: ".", isDir: true },
+          { name: "..", isDir: true },
+          ...contents.map((entry) => ({
+            name: entry.name,
+            isDir: entry.isDirectory,
+          })),
+        ];
+        setFiles(items);
+        setError(null);
+      } catch (error) {
+        setError("Failed to read directory: " + error.message);
+        console.error("Fetch files error:", error);
+      }
+    }
+
+    fetchFiles();
+  }, [currentPath]);
+
+  async function handleDirClick(name) {
+    try {
+      const newPath = await resolve(currentPath, name);
+      setCurrentPath(newPath);
+      setError(null);
+    } catch (error) {
+      setError("Failed to navigate: " + error.message);
+      console.error("Navigation error:", error);
+    }
+  }
+
   return (
-    <div className="w-56 bg-[#252526] border-r border-[#3c3c3c] flex flex-col">
-      <div className="p-2 uppercase text-xs font-semibold tracking-wider text-gray-400">
-        Explorer
-      </div>
-
-      {/* Project folder structure */}
-      <div className="p-2">
-        <div className="flex items-center group cursor-pointer">
-          <FaChevronRight className="w-3 h-3 mr-1 text-gray-400 transform rotate-90" />
-          <span className="ml-1 text-sm">C++ PROJECT</span>
-        </div>
-
-        <div className="ml-4 mt-1">
-          <div className="flex items-center text-sm py-1 cursor-pointer hover:bg-[#2a2d2e] px-1 bg-[#37373d]">
-            <span className="text-white">main.cpp</span>
-          </div>
-          <div className="flex items-center text-sm py-1 cursor-pointer hover:bg-[#2a2d2e] px-1">
-            <span className="text-gray-300">input.txt</span>
-          </div>
-          <div className="flex items-center text-sm py-1 cursor-pointer hover:bg-[#2a2d2e] px-1">
-            <span className="text-gray-300">output.txt</span>
-          </div>
-        </div>
-      </div>
-
-      {/* OPEN EDITORS section */}
-      <div className="mt-4 p-2">
-        <div className="flex items-center group cursor-pointer">
-          <FaChevronRight className="w-3 h-3 mr-1 text-gray-400 transform rotate-90" />
-          <span className="text-xs uppercase tracking-wider text-gray-400">
-            Open Editors
-          </span>
-        </div>
-
-        <div className="ml-4 mt-1">
-          <div className="flex items-center text-sm py-1 cursor-pointer hover:bg-[#2a2d2e] px-1 bg-[#37373d]">
-            <span className="text-white">main.cpp</span>
-          </div>
-          <div className="flex items-center text-sm py-1 cursor-pointer hover:bg-[#2a2d2e] px-1">
-            <span className="text-gray-300">input.txt</span>
-          </div>
-          <div className="flex items-center text-sm py-1 cursor-pointer hover:bg-[#2a2d2e] px-1">
-            <span className="text-gray-300">output.txt</span>
-          </div>
-        </div>
+    <div className="file-browser">
+      <h2 className="file-browser-title">📁 {currentPath || "Loading..."}</h2>
+      {error && <div className="error-message">{error}</div>}
+      <div className="file-list">
+        {files.length === 0 && !error ? (
+          <div className="loading">Loading...</div>
+        ) : (
+          files.map((file) => (
+            <div
+              key={file.name}
+              className={`file-item ${file.isDir ? "dir" : "file"}`}
+              onClick={() => file.isDir && handleDirClick(file.name)}
+            >
+              {file.isDir ? "📁" : "📄"} {file.name}
+              {file.isDir ? "/" : ""}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 }
+
+export default FileBrowser;

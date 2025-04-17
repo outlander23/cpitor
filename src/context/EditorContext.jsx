@@ -9,7 +9,9 @@ export function EditorProvider({ children }) {
   const [code, setCode] = useState(
     "// Start coding in C/C++\n\nint main() {\n  // Your code here\n  return 0;\n}"
   );
-  const [inputContent, setInputContent] = useState("// Test input data\n5\n10 20 30 40 50");
+  const [inputContent, setInputContent] = useState(
+    "// Test input data\n5\n10 20 30 40 50"
+  );
   const [outputContent, setOutputContent] = useState(
     "// Program output\nSum: 150\nAverage: 30.0"
   );
@@ -26,12 +28,12 @@ export function EditorProvider({ children }) {
   };
 
   const toggleFileExplorer = () => {
-    setShowFileExplorer(prev => !prev);
+    setShowFileExplorer((prev) => !prev);
   };
 
   const runCode = () => {
-    setTerminalOutput("$ g++ -o main main.cpp\n$ ./main\nProcessing input...\nSum: 150\nAverage: 30.0\n$ _");
-    setOutputContent("// Program output\nSum: 150\nAverage: 30.0");
+    setTerminalOutput("");
+    setOutputContent("");
   };
 
   return (
@@ -54,7 +56,7 @@ export function EditorProvider({ children }) {
         toggleFileExplorer,
         currentUser,
         currentDateTime,
-        runCode
+        runCode,
       }}
     >
       {children}

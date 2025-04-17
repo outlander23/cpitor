@@ -2,7 +2,7 @@ import { useEditor } from "../../context/EditorContext";
 
 export default function TitleBar() {
   const { fileName } = useEditor();
-  
+
   return (
     <div className="bg-[#3c3c3c] p-1 flex items-center justify-between text-sm">
       <div className="flex space-x-4">
@@ -14,7 +14,7 @@ export default function TitleBar() {
         <span>Terminal</span>
         <span>Help</span>
       </div>
-      <div>{fileName} - VS Code</div>
+      <div>{fileName} - cpitor</div>
       <div className="flex space-x-4">
         <span>_</span>
         <span>□</span>

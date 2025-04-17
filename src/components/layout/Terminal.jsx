@@ -3,7 +3,7 @@ import { useEditor } from "../../context/EditorContext";
 
 export default function Terminal() {
   const { terminalOutput } = useEditor();
-  
+
   return (
     <div className="h-32 bg-[#1e1e1e] border-t border-[#3c3c3c] flex flex-col">
       <div className="flex items-center px-2 py-1 bg-[#252526] border-b border-[#3c3c3c]">
