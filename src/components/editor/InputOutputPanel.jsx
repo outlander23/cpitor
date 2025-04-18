@@ -2,32 +2,27 @@ import Editor from "@monaco-editor/react";
 import { useEditor } from "../../context/EditorContext";
 
 export default function InputOutputPanel() {
-  const { 
-    inputContent, 
-    setInputContent, 
-    outputContent, 
-    theme 
-  } = useEditor();
-  
+  const { inputContent, setInputContent, outputContent, theme } = useEditor();
+
   return (
-    <div className="w-60 bg-[#252526] flex flex-col border-l border-[#3c3c3c]">
-      {/* Input Section - Top */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center px-2 py-1 bg-[#252526] border-b border-[#3c3c3c]">
-          <span className="text-xs font-medium">input.txt</span>
+    <div className="w-[250px] min-w-[200px] bg-[#1e1e1e] border-l border-[#3c3c3c] flex flex-col h-full">
+      {/* Input Section */}
+      <div className="h-1/2 border-b border-[#3c3c3c] flex flex-col">
+        <div className="px-2 py-1 bg-[#2d2d2d]">
+          <span className="text-xs font-medium text-white">Input</span>
         </div>
-        <div className="flex-grow">
+        <div className="flex-1 overflow-hidden">
           <Editor
-            height="100%"
             defaultLanguage="plaintext"
             language="plaintext"
             value={inputContent}
             onChange={setInputContent}
+            theme={theme}
             options={{
               minimap: { enabled: false },
               lineNumbers: "off",
               scrollBeyondLastLine: false,
-              fontSize: 14,
+              fontSize: 13,
               fontFamily:
                 "'Cascadia Code', 'Fira Code', Menlo, Monaco, 'Courier New', monospace",
               automaticLayout: true,
@@ -36,30 +31,26 @@ export default function InputOutputPanel() {
               folding: false,
               rulers: [],
             }}
-            theme={theme}
           />
         </div>
       </div>
 
-      {/* Divider between input and output */}
-      <div className="border-t border-[#3c3c3c]"></div>
-
-      {/* Output Section - Bottom */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center px-2 py-1 bg-[#252526] border-b border-[#3c3c3c]">
-          <span className="text-xs font-medium">output.txt</span>
+      {/* Output Section */}
+      <div className="h-1/2 flex flex-col">
+        <div className="px-2 py-1 bg-[#2d2d2d] border-b border-[#3c3c3c]">
+          <span className="text-xs font-medium text-white">Output</span>
         </div>
-        <div className="flex-grow">
+        <div className="flex-1 overflow-hidden">
           <Editor
-            height="100%"
             defaultLanguage="plaintext"
             language="plaintext"
             value={outputContent}
+            theme={theme}
             options={{
               minimap: { enabled: false },
               lineNumbers: "off",
               scrollBeyondLastLine: false,
-              fontSize: 14,
+              fontSize: 13,
               fontFamily:
                 "'Cascadia Code', 'Fira Code', Menlo, Monaco, 'Courier New', monospace",
               automaticLayout: true,
@@ -69,7 +60,6 @@ export default function InputOutputPanel() {
               readOnly: true,
               rulers: [],
             }}
-            theme={theme}
           />
         </div>
       </div>

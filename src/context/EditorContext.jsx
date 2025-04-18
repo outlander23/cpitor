@@ -4,11 +4,9 @@ import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
-  const [openFilePath, setOpenFilePath] = useState("");
-  const [fileName, setFileName] = useState("main.cpp");
+  const [openFiles, setOpenFiles] = useState([]);
+  const [activeFilePath, setActiveFilePath] = useState("");
   const [theme, setTheme] = useState("vs-dark");
-
-  const [code, setCode] = useState("");
 
   const [inputContent, setInputContent] = useState("");
   const [outputContent, setOutputContent] = useState("");
@@ -17,22 +15,55 @@ export function EditorProvider({ children }) {
   const [currentUser] = useState("outlander23");
   const [currentDateTime] = useState("2025-04-14 19:38:05");
 
-  const saveFile = async () => {
+  const activeFile = openFiles.find((f) => f.path === activeFilePath);
+
+  const setActiveFile = (path) => {
+    setActiveFilePath(path);
+  };
+
+  const handleCodeChange = (newCode) => {
+    setOpenFiles((prev) =>
+      prev.map((f) =>
+        f.path === activeFilePath ? { ...f, content: newCode } : f
+      )
+    );
+  };
+
+  const openFile = async (path, name) => {
+    const alreadyOpen = openFiles.find((f) => f.path === path);
+    if (alreadyOpen) {
+      setActiveFilePath(path);
+      return;
+    }
+
     try {
-      console.log("Saving file:", fileName);
-      console.log("Code content:", code);
-      await writeTextFile(openFilePath, code);
+      const content = await readTextFile(path);
+      const newFile = { path, name, content };
+      setOpenFiles((prev) => [...prev, newFile]);
+      setActiveFilePath(path);
+    } catch (error) {
+      console.error("Failed to open file:", error);
+    }
+  };
+
+  const closeFile = (path) => {
+    setOpenFiles((prev) => prev.filter((f) => f.path !== path));
+    if (activeFilePath === path) {
+      const remaining = openFiles.filter((f) => f.path !== path);
+      setActiveFilePath(remaining.length ? remaining[0].path : "");
+    }
+  };
+
+  const saveFile = async () => {
+    const file = openFiles.find((f) => f.path === activeFilePath);
+    if (!file) return;
+
+    try {
+      await writeTextFile(file.path, file.content);
+      console.log("Saved:", file.path);
     } catch (error) {
       console.error("Error saving file:", error);
     }
-  };
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-  };
-
-  const toggleFileExplorer = () => {
-    console.log("Toggling file explorer");
-    setShowFileExplorer((prev) => !prev);
   };
 
   const runCode = () => {
@@ -40,28 +71,19 @@ export function EditorProvider({ children }) {
     setOutputContent("");
   };
 
-  const openFile = async (path, name) => {
-    try {
-      const content = await readTextFile(path);
-      setCode(content);
-      setFileName(name);
-      setOpenFilePath(path);
-      setpath;
-    } catch (error) {
-      console.error("Failed to open file:", error);
-    }
-  };
-
   return (
     <EditorContext.Provider
       value={{
-        fileName,
-        setFileName,
         theme,
         setTheme,
-        code,
-        setCode,
+        code: activeFile?.content || "",
         handleCodeChange,
+        openFile,
+        closeFile,
+        saveFile,
+        openFiles,
+        activeFile,
+        setActiveFile,
         inputContent,
         setInputContent,
         outputContent,
@@ -69,12 +91,9 @@ export function EditorProvider({ children }) {
         terminalOutput,
         setTerminalOutput,
         showFileExplorer,
-        toggleFileExplorer,
+        toggleFileExplorer: () => setShowFileExplorer((prev) => !prev),
         currentUser,
         currentDateTime,
-        runCode,
-        openFile,
-        saveFile,
       }}
     >
       {children}

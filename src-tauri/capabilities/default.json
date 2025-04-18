@@ -2,10 +2,14 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
-    "opener:default",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-close",
     "fs:default",
     "fs:allow-open",
     "fs:allow-read",
@@ -19,6 +23,8 @@
     "fs:scope-download-recursive",
     "fs:scope-resource-recursive",
     "fs:allow-app-read-recursive",
-    "fs:allow-app-write-recursive"
+    "fs:allow-app-write-recursive",
+    "dialog:allow-open",
+    "dialog:default"
   ]
 }
