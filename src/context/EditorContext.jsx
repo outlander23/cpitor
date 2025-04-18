@@ -28,6 +28,7 @@ export function EditorProvider({ children }) {
   };
 
   const toggleFileExplorer = () => {
+    console.log("Toggling file explorer");
     setShowFileExplorer((prev) => !prev);
   };
 

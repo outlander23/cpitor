@@ -6,7 +6,6 @@ import EditorTabs from "./components/layout/EditorTabs";
 import CodeEditor from "./components/editor/CodeEditor";
 import Terminal from "./components/layout/Terminal";
 import InputOutputPanel from "./components/editor/InputOutputPanel";
-import StatusBar from "./components/layout/StatusBar";
 
 function App() {
   return (
@@ -14,7 +13,7 @@ function App() {
       <div className="h-screen flex flex-col bg-[#1e1e1e] text-white font-sans">
         <TitleBar />
 
-        <div className="flex flex-grow overflow-hidden">
+        <div className="flex flex-grow ">
           <ActivityBar />
           <FileExplorer />
 
@@ -26,8 +25,6 @@ function App() {
 
           <InputOutputPanel />
         </div>
-
-        <StatusBar />
       </div>
     </EditorProvider>
   );
