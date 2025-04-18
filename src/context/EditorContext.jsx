@@ -1,28 +1,31 @@
 import { createContext, useState, useContext } from "react";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
 const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
-  // Application state
+  const [openFilePath, setOpenFilePath] = useState("");
   const [fileName, setFileName] = useState("main.cpp");
   const [theme, setTheme] = useState("vs-dark");
-  const [code, setCode] = useState(
-    "// Start coding in C/C++\n\nint main() {\n  // Your code here\n  return 0;\n}"
-  );
-  const [inputContent, setInputContent] = useState(
-    "// Test input data\n5\n10 20 30 40 50"
-  );
-  const [outputContent, setOutputContent] = useState(
-    "// Program output\nSum: 150\nAverage: 30.0"
-  );
-  const [terminalOutput, setTerminalOutput] = useState(
-    "$ g++ -o main main.cpp\n$ ./main\nSum: 150\nAverage: 30.0\n$ _"
-  );
+
+  const [code, setCode] = useState("");
+
+  const [inputContent, setInputContent] = useState("");
+  const [outputContent, setOutputContent] = useState("");
+  const [terminalOutput, setTerminalOutput] = useState("");
   const [showFileExplorer, setShowFileExplorer] = useState(true);
   const [currentUser] = useState("outlander23");
   const [currentDateTime] = useState("2025-04-14 19:38:05");
 
+  const saveFile = async () => {
+    try {
+      console.log("Saving file:", fileName);
+      console.log("Code content:", code);
+      await writeTextFile(openFilePath, code);
+    } catch (error) {
+      console.error("Error saving file:", error);
+    }
+  };
   const handleCodeChange = (newCode) => {
     setCode(newCode);
   };
@@ -42,6 +45,8 @@ export function EditorProvider({ children }) {
       const content = await readTextFile(path);
       setCode(content);
       setFileName(name);
+      setOpenFilePath(path);
+      setpath;
     } catch (error) {
       console.error("Failed to open file:", error);
     }
@@ -69,6 +74,7 @@ export function EditorProvider({ children }) {
         currentDateTime,
         runCode,
         openFile,
+        saveFile,
       }}
     >
       {children}

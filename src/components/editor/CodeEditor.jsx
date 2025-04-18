@@ -1,9 +1,23 @@
+import { useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { useEditor } from "../../context/EditorContext";
 
 export default function CodeEditor() {
-  const { code, handleCodeChange, theme } = useEditor();
-  
+  const { code, handleCodeChange, theme, saveFile } = useEditor();
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault(); // Stop browser from saving the webpage
+        console.log("Saving file...");
+        saveFile(); // Your custom save function
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [saveFile]);
+
   return (
     <div className="flex-grow">
       <Editor
