@@ -1,4 +1,5 @@
 import { createContext, useState, useContext } from "react";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 
 const EditorContext = createContext();
 
@@ -22,7 +23,6 @@ export function EditorProvider({ children }) {
   const [currentUser] = useState("outlander23");
   const [currentDateTime] = useState("2025-04-14 19:38:05");
 
-  // Handler functions
   const handleCodeChange = (newCode) => {
     setCode(newCode);
   };
@@ -35,6 +35,16 @@ export function EditorProvider({ children }) {
   const runCode = () => {
     setTerminalOutput("");
     setOutputContent("");
+  };
+
+  const openFile = async (path, name) => {
+    try {
+      const content = await readTextFile(path);
+      setCode(content);
+      setFileName(name);
+    } catch (error) {
+      console.error("Failed to open file:", error);
+    }
   };
 
   return (
@@ -58,6 +68,7 @@ export function EditorProvider({ children }) {
         currentUser,
         currentDateTime,
         runCode,
+        openFile,
       }}
     >
       {children}

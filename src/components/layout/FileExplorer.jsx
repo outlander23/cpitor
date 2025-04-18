@@ -11,9 +11,8 @@ import {
 } from "lucide-react";
 import { SiCplusplus, SiC } from "react-icons/si";
 
-// VS Code–style font settings
-export const FONT_SIZE = 12; // px
-export const LINE_HEIGHT = 1.5; // unitless
+export const FONT_SIZE = 12;
+export const LINE_HEIGHT = 1.5;
 
 function getFileIcon(filename) {
   const ext = filename.split(".").pop().toLowerCase();
@@ -35,7 +34,7 @@ function FileBrowser() {
   const [rootPath, setRootPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { showFileExplorer } = useEditor();
+  const { showFileExplorer, openFile } = useEditor();
 
   useEffect(() => {
     async function init() {
@@ -97,15 +96,20 @@ function FileBrowser() {
     return items.map((item) => {
       const fullPath = item.path;
       const isOpen = expandedPaths.has(fullPath);
+      const ext = item.name.split(".").pop().toLowerCase();
 
       return (
         <div key={`${fullPath}-${item.name}`}>
           <div
             className="flex items-center py-1 px-2 hover:bg-zinc-700 rounded cursor-pointer"
             style={{ paddingLeft: depth * 16 + 4 }}
-            onClick={() =>
-              item.isDir && handleToggleDirectory(fullPath, isOpen)
-            }
+            onClick={() => {
+              if (item.isDir) {
+                handleToggleDirectory(fullPath, isOpen);
+              } else if (ext === "cpp") {
+                openFile(fullPath, item.name);
+              }
+            }}
           >
             {item.isDir ? (
               <div className="flex items-center gap-1 text-blue-400">
@@ -144,12 +148,10 @@ function FileBrowser() {
       className="bg-zinc-900 text-gray-200 w-full max-w-md h-screen flex flex-col overflow-hidden"
       style={{ fontSize: `${FONT_SIZE}px`, lineHeight: LINE_HEIGHT }}
     >
-      {/* Header */}
       <div className="p-3 border-b border-zinc-700">
         <h2 className="uppercase tracking-wider">EXPLORER</h2>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-1">
         {loading ? (
           <div className="text-gray-500 p-2">Loading…</div>
