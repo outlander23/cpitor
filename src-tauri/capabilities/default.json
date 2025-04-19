@@ -2,9 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": [
-    "main"
-  ],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "core:window:allow-minimize",
@@ -25,6 +23,34 @@
     "fs:allow-app-read-recursive",
     "fs:allow-app-write-recursive",
     "dialog:allow-open",
-    "dialog:default"
+    "dialog:default",
+    "shell:default",
+    "shell:allow-open",
+    "shell:allow-kill",
+    "shell:allow-spawn",
+    "shell:allow-stdin-write",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "compile-cpp",
+          "cmd": "g++",
+          "args": [
+            { "validator": "\\S+\\.cpp" },
+            "-o",
+            { "validator": "\\S+" }
+          ],
+          "sidecar": false
+        },
+        {
+          "name": "run-executable",
+          "cmd": {
+            "validator": "\\S+/\\S+"
+          },
+          "args": [],
+          "sidecar": false
+        }
+      ]
+    }
   ]
 }

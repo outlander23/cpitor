@@ -66,11 +66,9 @@ export function EditorProvider({ children }) {
     }
   };
 
-  const runCode = () => {
-    setTerminalOutput("");
-    setOutputContent("");
+  const updateTerminalOutput = (output) => {
+    setTerminalOutput(output);
   };
-
   return (
     <EditorContext.Provider
       value={{
@@ -88,12 +86,13 @@ export function EditorProvider({ children }) {
         setInputContent,
         outputContent,
         setOutputContent,
-        terminalOutput,
         setTerminalOutput,
         showFileExplorer,
         toggleFileExplorer: () => setShowFileExplorer((prev) => !prev),
         currentUser,
         currentDateTime,
+        terminalOutput,
+        updateTerminalOutput,
       }}
     >
       {children}
