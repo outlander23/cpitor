@@ -7,6 +7,10 @@ export function EditorProvider({ children }) {
   const [openFiles, setOpenFiles] = useState([]);
   const [activeFilePath, setActiveFilePath] = useState("");
   const [theme, setTheme] = useState("vs-dark");
+  const [activeFileName, setActiveFileName] = useState("");
+
+  const [isDirOpen, setIsDirOpen] = useState(false);
+  const [openDirPath, setOpenDirPath] = useState("");
 
   const [inputContent, setInputContent] = useState("");
   const [outputContent, setOutputContent] = useState("");
@@ -33,6 +37,7 @@ export function EditorProvider({ children }) {
     const alreadyOpen = openFiles.find((f) => f.path === path);
     if (alreadyOpen) {
       setActiveFilePath(path);
+
       return;
     }
 
@@ -41,6 +46,7 @@ export function EditorProvider({ children }) {
       const newFile = { path, name, content };
       setOpenFiles((prev) => [...prev, newFile]);
       setActiveFilePath(path);
+      setActiveFileName(name);
     } catch (error) {
       console.error("Failed to open file:", error);
     }
@@ -92,7 +98,12 @@ export function EditorProvider({ children }) {
         currentUser,
         currentDateTime,
         terminalOutput,
+        activeFileName,
         updateTerminalOutput,
+        isDirOpen,
+        openDirPath,
+        setIsDirOpen,
+        setOpenDirPath,
       }}
     >
       {children}

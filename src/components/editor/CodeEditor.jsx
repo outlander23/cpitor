@@ -14,7 +14,9 @@ export default function CodeEditor() {
     activeFile,
     setActiveFile,
     closeFile,
-    addFile,
+    openFile,
+    setIsDirOpen,
+    setOpenDirPath,
   } = useEditor();
 
   // Log for debugging
@@ -45,18 +47,21 @@ export default function CodeEditor() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [saveFile]);
 
-  // Function to open a file
-  const openFile = async () => {
+  const openFileFromLoadscreen = async () => {
     const selected = await open({
       multiple: false,
-      filters: [
-        { name: "Code Files", extensions: ["cpp", "py", "js", "ts", "json"] },
-      ],
+      filters: [{ name: "Code Files", extensions: ["cpp"] }],
     });
-    if (selected) {
+
+    if (selected && typeof selected === "string") {
       const content = await readTextFile(selected);
-      addFile({ path: selected, name: selected.split("/").pop(), content });
+      const fileName = selected.split("/").pop();
+      const parentPath = selected.substring(0, selected.lastIndexOf("/"));
+      console.log("Parent path:", parentPath);
+      openFile(selected, fileName);
       setActiveFile(selected);
+      setIsDirOpen(true);
+      setOpenDirPath(parentPath);
     }
   };
 
@@ -134,7 +139,7 @@ export default function CodeEditor() {
           <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
             <div className="text-2xl mb-4">Welcome to Your Code Editor</div>
             <button
-              onClick={openFile}
+              onClick={openFileFromLoadscreen}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >
               Open a File

@@ -34,12 +34,14 @@ function FileBrowser() {
   const [rootPath, setRootPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { showFileExplorer, openFile } = useEditor();
+  const { showFileExplorer, openFile, isDirOpen, openDirPath } = useEditor();
 
   useEffect(() => {
     async function init() {
       try {
-        const home = await homeDir();
+        console.log("openDirPath", openDirPath);
+        const home = openDirPath || (await homeDir());
+        console.log("Home directory:", home);
         setRootPath(home);
         await loadDirectory(home);
         setExpandedPaths(new Set([home]));
@@ -50,7 +52,7 @@ function FileBrowser() {
       }
     }
     init();
-  }, []);
+  }, [isDirOpen]);
 
   async function loadDirectory(dirPath) {
     try {
@@ -141,7 +143,7 @@ function FileBrowser() {
     });
   }
 
-  if (!showFileExplorer) return null;
+  if (!showFileExplorer || !isDirOpen) return null;
 
   return (
     <div

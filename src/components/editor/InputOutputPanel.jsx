@@ -5,13 +5,15 @@ export default function InputOutputPanel() {
   const { inputContent, setInputContent, outputContent, theme } = useEditor();
 
   return (
-    <div className="w-[250px] min-w-[200px] bg-[#1e1e1e] border-l border-[#3c3c3c] flex flex-col h-full">
+    <div className="min-w-[420px] bg-[#1e1e1e] border-l border-[#3c3c3c] flex flex-col h-full overflow-hidden">
       {/* Input Section */}
-      <div className="h-1/2 border-b border-[#3c3c3c] flex flex-col">
-        <div className="px-2 py-1 bg-[#2d2d2d]">
-          <span className="text-xs font-medium text-white">Input</span>
+      <div className="flex-1 flex flex-col overflow-hidden border-b border-[#3c3c3c]">
+        <div className="px-3 py-2 bg-[#2d2d2d]">
+          <span className="text-xs font-semibold text-white tracking-wide">
+            Input
+          </span>
         </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-grow overflow-hidden">
           <Editor
             defaultLanguage="plaintext"
             language="plaintext"
@@ -36,11 +38,13 @@ export default function InputOutputPanel() {
       </div>
 
       {/* Output Section */}
-      <div className="h-1/2 flex flex-col">
-        <div className="px-2 py-1 bg-[#2d2d2d] border-b border-[#3c3c3c]">
-          <span className="text-xs font-medium text-white">Output</span>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="px-3 py-2 bg-[#2d2d2d] border-b border-[#3c3c3c]">
+          <span className="text-xs font-semibold text-white tracking-wide">
+            Output
+          </span>
         </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-grow overflow-hidden">
           <Editor
             defaultLanguage="plaintext"
             language="plaintext"

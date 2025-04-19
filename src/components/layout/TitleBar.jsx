@@ -2,7 +2,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEditor } from "../../context/EditorContext";
 
 export default function TitleBar() {
-  const { fileName } = useEditor();
+  const { activeFileName } = useEditor();
 
   return (
     <div className="bg-[#3c3c3c] p-1 flex items-center justify-between text-sm select-none text-white">
@@ -30,7 +30,7 @@ export default function TitleBar() {
         </span>
       </div>
 
-      <div className="text-center">{fileName} - cpitor</div>
+      <div className="text-center">{activeFileName} - cpitor</div>
 
       <div className="flex space-x-1 items-center">
         <div
