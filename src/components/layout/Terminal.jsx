@@ -11,6 +11,7 @@ export default function Terminal() {
     inputContent,
     setOutputContent,
   } = useEditor();
+
   const [isRunning, setIsRunning] = useState(false);
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
@@ -28,11 +29,14 @@ export default function Terminal() {
   const compileAndRun = async () => {
     if (!activeFile || !activeFile.path.endsWith(".cpp")) {
       updateTerminalOutput(
-        `${terminalOutput}\n❌ Error: No C++ file selected or invalid file type\n`
+        "❌ Error: No C++ file selected or invalid file type\n"
       );
       return;
     }
+
     setIsRunning(true);
+    updateTerminalOutput(""); // 🔄 Clear previous output
+    setOutputContent(""); // 🔄 Clear output content
 
     try {
       const response = await invoke("compile_and_run_cpp", {
@@ -42,43 +46,32 @@ export default function Terminal() {
 
       const result =
         typeof response === "string" ? JSON.parse(response) : response;
-
       const output = result.output.trim();
       const stage = result.stage;
       const success = result.success;
 
       if (success) {
-        if (stage === "compilation") {
-          updateTerminalOutput(
-            (prev) => `${prev}\n✅ Compilation successful. Executing...\n`
-          );
-        } else if (stage === "execution") {
-          updateTerminalOutput((prev) => `${prev}\n🎉 Execution Output:\n\n`);
-          setOutputContent(output);
-        }
+        updateTerminalOutput("Compilation successful. Executing...\n");
+
+        setOutputContent(output);
       } else {
         if (stage === "compilation") {
-          updateTerminalOutput((prev) => `${prev}\n❌ Compilation failed:\n\n`);
+          updateTerminalOutput(" Compilation failed:\n\n" + output);
         } else if (stage === "execution") {
-          updateTerminalOutput((prev) => `${prev}\n💥 Runtime error:\n\n`);
+          updateTerminalOutput("Runtime error:\n\n" + output);
         }
-        setOutputContent(output);
+        setOutputContent("");
       }
     } catch (error) {
-      console.error("Runtime error:", error);
-      updateTerminalOutput(
-        (prev) => `${prev}\n❌ Unexpected error:\n${error}\n`
-      );
+      updateTerminalOutput(` Unexpected error:\n${error}`);
     } finally {
       setIsRunning(false);
     }
   };
-  // Clear terminal output
   const clearTerminal = () => {
-    updateTerminalOutput("");
+    updateTerminalOutput(() => "");
     setOutputContent("");
   };
-
   return (
     <div className="flex flex-col h-full bg-gray-900 border-t border-gray-700 shadow-lg">
       {/* Terminal Header */}

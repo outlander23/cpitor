@@ -5,8 +5,6 @@ import FileExplorer from "./components/layout/FileExplorer";
 import CodeEditor from "./components/editor/CodeEditor";
 import Terminal from "./components/layout/Terminal";
 import InputOutputPanel from "./components/editor/InputOutputPanel";
-import { ResizableBox } from "react-resizable";
-import "react-resizable/css/styles.css"; // optional: default resizable styling
 
 function AppContent() {
   const { showFileExplorer } = useEditor();

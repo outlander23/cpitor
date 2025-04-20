@@ -19,11 +19,6 @@ export default function CodeEditor() {
     setOpenDirPath,
   } = useEditor();
 
-  // Log for debugging
-  console.log("CodeEditor rendered");
-  console.log("Active file:", activeFile);
-  console.log("Open files:", openFiles);
-
   // Sync code with active file
   useEffect(() => {
     if (activeFile && openFiles.length > 0) {
@@ -57,7 +52,6 @@ export default function CodeEditor() {
       const content = await readTextFile(selected);
       const fileName = selected.split("/").pop();
       const parentPath = selected.substring(0, selected.lastIndexOf("/"));
-      console.log("Parent path:", parentPath);
       openFile(selected, fileName);
       setActiveFile(selected);
       setIsDirOpen(true);
