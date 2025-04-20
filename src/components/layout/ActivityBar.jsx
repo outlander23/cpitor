@@ -1,38 +1,81 @@
+import React from "react";
 import {
+  FaHome,
   FaFolderOpen,
   FaSearch,
-  FaCodeBranch,
-  FaBug,
-  FaPuzzlePiece,
+  FaTerminal,
+  FaPlay,
+  FaCog,
 } from "react-icons/fa";
 import { useEditor } from "../../context/EditorContext";
 
 export default function ActivityBar() {
   const { showFileExplorer, toggleFileExplorer } = useEditor();
-  
+
+  // Placeholder handlers
+  const goHome = () => console.log("Navigate to Home");
+  const openSettings = () => console.log("Open Settings");
+
   return (
-    <div className="w-12 bg-[#333333] flex flex-col items-center py-4 space-y-6">
-      <button
-        title="Explorer"
-        className={`p-1 ${
-          showFileExplorer ? "border-l-2 border-white" : ""
-        }`}
-        onClick={toggleFileExplorer}
-      >
-        <FaFolderOpen className="w-5 h-5 text-gray-300" />
-      </button>
-      <button title="Search" className="p-1">
-        <FaSearch className="w-5 h-5 text-gray-400" />
-      </button>
-      <button title="Source Control" className="p-1">
-        <FaCodeBranch className="w-5 h-5 text-gray-400" />
-      </button>
-      <button title="Run and Debug" className="p-1">
-        <FaBug className="w-5 h-5 text-gray-400" />
-      </button>
-      <button title="Extensions" className="p-1">
-        <FaPuzzlePiece className="w-5 h-5 text-gray-400" />
-      </button>
+    <div
+      className="
+        flex flex-col justify-between
+        w-12 h-screen overflow-hidden
+        bg-gray-800
+      "
+    >
+      {/* Top group: never shrink */}
+      <div className="flex-shrink-0 flex flex-col items-center space-y-6 py-4">
+        <ActivityButton title="Home" onClick={goHome}>
+          <FaHome className="w-5 h-5" />
+        </ActivityButton>
+
+        <ActivityButton
+          title="Explorer"
+          active={showFileExplorer}
+          onClick={toggleFileExplorer}
+        >
+          <FaFolderOpen className="w-5 h-5" />
+        </ActivityButton>
+      </div>
+
+      {/* Middle scrollable group */}
+      <div className="flex-1 overflow-y-auto flex flex-col items-center space-y-6 py-4">
+        <ActivityButton title="Search">
+          <FaSearch className="w-5 h-5" />
+        </ActivityButton>
+        <ActivityButton title="Terminal">
+          <FaTerminal className="w-5 h-5" />
+        </ActivityButton>
+        <ActivityButton title="Run & Debug">
+          <FaPlay className="w-5 h-5" />
+        </ActivityButton>{" "}
+        <ActivityButton title="Settings" onClick={openSettings}>
+          <FaCog className="w-5 h-5" />
+        </ActivityButton>
+      </div>
     </div>
+  );
+}
+
+function ActivityButton({ title, active = false, onClick, children }) {
+  return (
+    <button
+      title={title}
+      onClick={onClick}
+      className={`
+        flex items-center justify-center
+        w-10 h-10 p-1 rounded-lg
+        transition-colors duration-150
+        ${
+          active
+            ? "bg-gray-700 border-l-2 border-blue-400 text-white"
+            : "text-gray-400 hover:bg-gray-700 hover:text-white"
+        }
+      `}
+    >
+      {children}
+      <span className="sr-only">{title}</span>
+    </button>
   );
 }

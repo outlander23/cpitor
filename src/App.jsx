@@ -5,7 +5,7 @@ import FileExplorer from "./components/layout/FileExplorer";
 import CodeEditor from "./components/editor/CodeEditor";
 import Terminal from "./components/layout/Terminal";
 import InputOutputPanel from "./components/editor/InputOutputPanel";
-
+import SettingsPage from "./components/settings/settings";
 function AppContent() {
   const { showFileExplorer } = useEditor();
 
@@ -55,8 +55,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <EditorProvider>
-      <AppContent />
-    </EditorProvider>
+    <>
+      <EditorProvider>
+        <AppContent />
+        <SettingsPage />
+      </EditorProvider>
+    </>
   );
 }

@@ -42,6 +42,8 @@ export default function Terminal() {
       const response = await invoke("compile_and_run_cpp", {
         filePath: activeFile.path,
         input: inputContent,
+        cppenv: "ONPC",
+        maxruntime: 5,
       });
 
       const result =
