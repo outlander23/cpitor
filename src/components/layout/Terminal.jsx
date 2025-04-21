@@ -10,6 +10,7 @@ export default function Terminal() {
     activeFile,
     inputContent,
     setOutputContent,
+    settings,
   } = useEditor();
 
   const [isRunning, setIsRunning] = useState(false);
@@ -37,25 +38,25 @@ export default function Terminal() {
     setIsRunning(true);
     updateTerminalOutput(""); // 🔄 Clear previous output
     setOutputContent(""); // 🔄 Clear output content
-
+    console.log("Compiling and running:", settings);
     try {
       const response = await invoke("compile_and_run_cpp", {
         filePath: activeFile.path,
         input: inputContent,
-        cppenv: "ONPC",
-        maxruntime: 1,
+        cppenv: settings.cppFlags,
+        maxruntime: settings.runtimeForCPP * 1,
       });
 
       console.log("Response:", response);
       if (response.success) {
-        updateTerminalOutput(`Compile and run successful:\n`);
+        updateTerminalOutput(`Compile and run successful\n`);
         setOutputContent(response.output);
       } else {
         updateTerminalOutput(` Error: ${response.output}\n`);
         setOutputContent("");
       }
     } catch (error) {
-      updateTerminalOutput(` Unexpected error:\n${error}`);
+      updateTerminalOutput(` Unexpected error\n${error}`);
     } finally {
       setIsRunning(false);
     }

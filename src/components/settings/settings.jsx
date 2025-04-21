@@ -7,7 +7,7 @@ const SettingsPage = () => {
   const [localSettings, setLocalSettings] = useState(settings);
 
   const handleChange = (key, value) => {
-    if (key === "cppEnvVars") {
+    if (key === "cppFlags") {
       try {
         const parsed = JSON.parse(value);
         setLocalSettings((prev) => ({ ...prev, [key]: parsed }));
@@ -122,8 +122,8 @@ const SettingsPage = () => {
               C++ Environment Variables (JSON)
             </label>
             <textarea
-              value={JSON.stringify(localSettings.cppEnvVars, null, 2)}
-              onChange={(e) => handleChange("cppEnvVars", e.target.value)}
+              value={JSON.stringify(localSettings.cppFlags, null, 2)}
+              onChange={(e) => handleChange("cppFlags", e.target.value)}
               className="bg-[#1e1e1e] border border-[#3c3c3c] p-2 w-full rounded focus:outline-none"
               rows="6"
             />

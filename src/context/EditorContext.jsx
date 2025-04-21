@@ -7,6 +7,8 @@ import { defaultSettings } from "../utils/settings";
 const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
+  const [activeView, setActiveView] = useState("home");
+
   // --- Settings ---
   const [settings, setSettings] = useState(defaultSettings);
   const [store, setStore] = useState(null);
@@ -46,33 +48,33 @@ export function EditorProvider({ children }) {
         const s = await load("settings.json", { autoSave: true });
         setStore(s);
 
-        console.log("Store initialized:", s);
-        return;
         const stored = (await s.get("settings")) || {};
         const combined = { ...defaultSettings, ...stored };
         setSettings(combined);
         setHasSettingsLoaded(true);
+
+        console.log("Store initialized:", combined);
       } catch (err) {
         console.error("Failed to load settings:", err);
         setSettings(defaultSettings);
         setHasSettingsLoaded(true);
       }
     }
+
     initStore();
   }, []);
 
   const updateSettings = async (newSettings) => {
-    // if (!store) return;
-    // try {
-    //   const updated = { ...settings, ...newSettings };
-    //   await store.set("settings", updated);
-    //   await store.save();
-    //   setSettings(updated);
-    // } catch (err) {
-    //   console.error("Failed to update settings:", err);
-    // }
-
-    console.log("Settings updated:", newSettings);
+    if (!store) return;
+    try {
+      const updated = { ...settings, ...newSettings };
+      await store.set("settings", updated);
+      await store.save();
+      setSettings(updated);
+      console.log("Settings updated:", updated);
+    } catch (err) {
+      console.error("Failed to update settings:", err);
+    }
   };
 
   const getSetting = (key) =>
@@ -142,6 +144,10 @@ export function EditorProvider({ children }) {
     );
   };
 
+  const changeView = (view) => {
+    setActiveView(view);
+  };
+
   const setActiveFile = (path) => setActiveFilePath(path);
   const updateTerminalOutput = (out) => setTerminalOutput(out);
   const toggleFileExplorer = () => setShowFileExplorer((p) => !p);
@@ -189,6 +195,10 @@ export function EditorProvider({ children }) {
     // Meta
     currentUser,
     currentDateTime,
+
+    // change view
+    activeView,
+    changeView,
   };
 
   return (

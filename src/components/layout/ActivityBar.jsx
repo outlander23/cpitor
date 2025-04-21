@@ -10,11 +10,13 @@ import {
 import { useEditor } from "../../context/EditorContext";
 
 export default function ActivityBar() {
-  const { showFileExplorer, toggleFileExplorer } = useEditor();
+  const { showFileExplorer, toggleFileExplorer, changeView, activeView } =
+    useEditor();
 
-  // Placeholder handlers
-  const goHome = () => console.log("Navigate to Home");
-  const openSettings = () => console.log("Open Settings");
+  // Updated handlers that change the active view
+  const goHome = () => changeView("home");
+  const openSettings = () => changeView("settings");
+  const openEditor = () => changeView("editor");
 
   return (
     <div
@@ -26,14 +28,21 @@ export default function ActivityBar() {
     >
       {/* Top group: never shrink */}
       <div className="flex-shrink-0 flex flex-col items-center space-y-6 py-4">
-        <ActivityButton title="Home" onClick={goHome}>
+        <ActivityButton
+          title="Home"
+          active={activeView === "home"}
+          onClick={goHome}
+        >
           <FaHome className="w-5 h-5" />
         </ActivityButton>
 
         <ActivityButton
           title="Explorer"
-          active={showFileExplorer}
-          onClick={toggleFileExplorer}
+          active={showFileExplorer && activeView === "editor"}
+          onClick={() => {
+            toggleFileExplorer();
+            openEditor();
+          }}
         >
           <FaFolderOpen className="w-5 h-5" />
         </ActivityButton>
@@ -41,16 +50,35 @@ export default function ActivityBar() {
 
       {/* Middle scrollable group */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center space-y-6 py-4">
-        <ActivityButton title="Search">
+        <ActivityButton
+          title="Search"
+          active={activeView === "search"}
+          onClick={() => changeView("search")}
+        >
           <FaSearch className="w-5 h-5" />
         </ActivityButton>
-        <ActivityButton title="Terminal">
+
+        <ActivityButton
+          title="Terminal"
+          active={activeView === "terminal"}
+          onClick={() => changeView("editor")} // Just focus on terminal in editor view
+        >
           <FaTerminal className="w-5 h-5" />
         </ActivityButton>
-        <ActivityButton title="Run & Debug">
+
+        <ActivityButton
+          title="Run & Debug"
+          active={activeView === "debug"}
+          onClick={() => changeView("debug")}
+        >
           <FaPlay className="w-5 h-5" />
-        </ActivityButton>{" "}
-        <ActivityButton title="Settings" onClick={openSettings}>
+        </ActivityButton>
+
+        <ActivityButton
+          title="Settings"
+          active={activeView === "settings"}
+          onClick={openSettings}
+        >
           <FaCog className="w-5 h-5" />
         </ActivityButton>
       </div>
