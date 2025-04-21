@@ -29,7 +29,7 @@ export default function Terminal() {
   const compileAndRun = async () => {
     if (!activeFile || !activeFile.path.endsWith(".cpp")) {
       updateTerminalOutput(
-        "❌ Error: No C++ file selected or invalid file type\n"
+        "Error: No C++ file selected or invalid file type\n"
       );
       return;
     }
@@ -43,25 +43,15 @@ export default function Terminal() {
         filePath: activeFile.path,
         input: inputContent,
         cppenv: "ONPC",
-        maxruntime: 5,
+        maxruntime: 1,
       });
 
-      const result =
-        typeof response === "string" ? JSON.parse(response) : response;
-      const output = result.output.trim();
-      const stage = result.stage;
-      const success = result.success;
-
-      if (success) {
-        updateTerminalOutput("Compilation successful. Executing...\n");
-
-        setOutputContent(output);
+      console.log("Response:", response);
+      if (response.success) {
+        updateTerminalOutput(`Compile and run successful:\n`);
+        setOutputContent(response.output);
       } else {
-        if (stage === "compilation") {
-          updateTerminalOutput(" Compilation failed:\n\n" + output);
-        } else if (stage === "execution") {
-          updateTerminalOutput("Runtime error:\n\n" + output);
-        }
+        updateTerminalOutput(` Error: ${response.output}\n`);
         setOutputContent("");
       }
     } catch (error) {
