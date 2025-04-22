@@ -112,6 +112,8 @@ export function EditorProvider({ children }) {
         setActiveFilePath(selected);
         setIsDirOpen(true);
         setOpenDirPath(parentPath);
+        setShowFileExplorer(true);
+        setActiveView("editor");
       }
     } catch (err) {
       console.error("Failed to load file via dialog:", err);

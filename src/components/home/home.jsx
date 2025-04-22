@@ -43,19 +43,6 @@ const HomePage = () => {
         </div>
 
         {/* Getting Started */}
-        <div className="bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
-          <div className="flex items-center mb-4">
-            <FaFileCode className="text-purple-400 mr-3 text-3xl" />
-            <h2 className="text-2xl font-semibold">Getting Started</h2>
-          </div>
-          <ul className="list-disc list-inside text-gray-300 space-y-2 text-base leading-relaxed">
-            <li>Open or create a C++ file from the explorer.</li>
-            <li>Write your code with auto-suggestions and smart indent.</li>
-            <li>Compile and run using the integrated terminal.</li>
-            <li>See output in the console panel below the editor.</li>
-            <li>Customize your editor from the settings menu.</li>
-          </ul>
-        </div>
       </div>
     </div>
   );
