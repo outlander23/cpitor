@@ -15,7 +15,7 @@ export default function CodeEditor() {
     openFileFromLoadscreen,
   } = useEditor();
 
-  // Sync code when active file changes
+  // Sync editor content with active file
   useEffect(() => {
     if (!activeFile) return;
     const file = openFiles.find((f) => f.path === activeFile.path);
@@ -36,32 +36,8 @@ export default function CodeEditor() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [saveFile]);
 
-  const renderEditor = () => (
-    <Editor
-      height="100%"
-      language="cpp"
-      value={code}
-      onChange={handleCodeChange}
-      theme={theme}
-      options={{
-        automaticLayout: true,
-        fontSize: 14,
-        fontFamily: "'Cascadia Code', 'Fira Code', monospace",
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        lineNumbers: "on",
-        renderLineHighlight: "line",
-        wordWrap: "on",
-        cursorBlinking: "smooth",
-        padding: { top: 8, bottom: 8 },
-        scrollBar: { vertical: "auto", horizontal: "auto" },
-      }}
-      className="border-t border-gray-700"
-    />
-  );
-
   return (
-    <div className="flex flex-col h-full bg-gray-900">
+    <div className="flex flex-col h-screen bg-gray-900 overflow-hidden">
       <TabBar
         files={openFiles}
         activePath={activeFile?.path}
@@ -70,9 +46,28 @@ export default function CodeEditor() {
         onOpen={openFileFromLoadscreen}
       />
 
-      <div className="flex-grow relative">
+      <div className="flex-1 relative overflow-hidden">
         {activeFile ? (
-          renderEditor()
+          <Editor
+            language="cpp"
+            value={code}
+            onChange={handleCodeChange}
+            theme={theme}
+            options={{
+              automaticLayout: true,
+              fontSize: 14,
+              fontFamily: "'Cascadia Code', 'Fira Code', monospace",
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              lineNumbers: "on",
+              renderLineHighlight: "line",
+              wordWrap: "on",
+              cursorBlinking: "smooth",
+              padding: { top: 8, bottom: 8 },
+              scrollBar: { vertical: "auto", horizontal: "auto" },
+            }}
+            className="border-t border-gray-700"
+          />
         ) : (
           <WelcomeView onOpen={openFileFromLoadscreen} />
         )}
@@ -81,7 +76,6 @@ export default function CodeEditor() {
   );
 }
 
-// TabBar Component
 function TabBar({ files, activePath, onSelect, onClose, onOpen }) {
   return (
     <div className="flex items-center bg-gray-800 border-b border-gray-700 text-sm h-10">
@@ -126,7 +120,6 @@ function TabBar({ files, activePath, onSelect, onClose, onOpen }) {
   );
 }
 
-// Welcome view placeholder
 function WelcomeView({ onOpen }) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">

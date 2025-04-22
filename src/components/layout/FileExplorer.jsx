@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { SiCplusplus, SiC } from "react-icons/si";
 
-export const FONT_SIZE = 12;
-export const LINE_HEIGHT = 1.5;
+export const FONT_SIZE = 14;
+export const LINE_HEIGHT = 1.6;
 
 function getFileIcon(filename) {
   const ext = filename.split(".").pop().toLowerCase();
@@ -20,11 +20,11 @@ function getFileIcon(filename) {
     case "cpp":
     case "h":
     case "hpp":
-      return <SiCplusplus className="text-blue-600" size={FONT_SIZE} />;
+      return <SiCplusplus className="text-blue-500" size={16} />;
     case "c":
-      return <SiC className="text-blue-600" size={FONT_SIZE} />;
+      return <SiC className="text-blue-400" size={16} />;
     default:
-      return <File className="text-gray-300" size={FONT_SIZE} />;
+      return <File className="text-gray-400" size={16} />;
   }
 }
 
@@ -91,23 +91,21 @@ function FileBrowser() {
     }
   }
 
-  function renderFileTree(dirPath, depth = 0) {
+  function renderFileTree(dirPath, depth = 1) {
     const items = fileTree[dirPath] || [];
 
     return items.map((item) => {
       const fullPath = item.path;
       const isOpen = expandedPaths.has(fullPath);
-      const ext = item.name.split(".").pop().toLowerCase();
-      const isCppFile = !item.isDir && /\.(cpp|h|c)$/i.test(item.name);
+      const isCppFile = !item.isDir && /\.(cpp|c|h|hpp)$/i.test(item.name);
 
-      // ❌ Skip rendering completely if it's a non-`.cpp` file
       if (!item.isDir && !isCppFile) return null;
 
       return (
         <div key={`${fullPath}-${item.name}`}>
           <div
-            className="flex items-center py-1 px-2 hover:bg-zinc-700 rounded cursor-pointer"
-            style={{ paddingLeft: depth * 16 + 4 }}
+            className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md hover:bg-zinc-700 transition-colors`}
+            style={{ paddingLeft: depth * 16 }}
             onClick={() => {
               if (item.isDir) {
                 handleToggleDirectory(fullPath, isOpen);
@@ -116,28 +114,31 @@ function FileBrowser() {
               }
             }}
           >
-            {item.isDir ? (
-              <div className="flex items-center gap-1 text-blue-400">
-                <span className="w-4">
-                  {isOpen ? (
-                    <ChevronDown size={FONT_SIZE} />
-                  ) : (
-                    <ChevronRight size={FONT_SIZE} />
-                  )}
-                </span>
-                {isOpen ? (
-                  <FolderOpen size={FONT_SIZE} />
+            <span className="w-4">
+              {item.isDir ? (
+                isOpen ? (
+                  <ChevronDown size={14} />
                 ) : (
-                  <Folder size={FONT_SIZE} />
+                  <ChevronRight size={14} />
+                )
+              ) : (
+                <span />
+              )}
+            </span>
+            {item.isDir ? (
+              <>
+                {isOpen ? (
+                  <FolderOpen className="text-yellow-400" size={16} />
+                ) : (
+                  <Folder className="text-yellow-400" size={16} />
                 )}
-                <span className="ml-1 truncate">{item.name}</span>
-              </div>
+                <span className="truncate text-sm">{item.name}</span>
+              </>
             ) : (
-              <div className="flex items-center gap-1">
-                <span className="w-4" />
+              <>
                 {getFileIcon(item.name)}
-                <span className="ml-1 truncate">{item.name}</span>
-              </div>
+                <span className="truncate text-sm">{item.name}</span>
+              </>
             )}
           </div>
 
@@ -151,43 +152,43 @@ function FileBrowser() {
 
   return (
     <div
-      className="bg-zinc-900 text-gray-200 w-full max-w-md h-screen flex flex-col"
+      className="bg-zinc-900 text-gray-200 w-full max-w-sm border-r border-zinc-800"
       style={{
         fontSize: `${FONT_SIZE}px`,
         lineHeight: LINE_HEIGHT,
-        overflow: "hidden",
       }}
     >
-      <div className="p-3 border-b border-zinc-700">
-        <h2 className="uppercase tracking-wider">EXPLORER</h2>
+      <div className="p-4 border-b border-zinc-800 bg-zinc-950 text-xs font-semibold tracking-wider text-gray-300 uppercase">
+        Explorer
       </div>
 
-      {/* Only this section is scrollable now */}
       <div
-        className="flex-1 overflow-y-auto custom-scrollbar"
-        style={{ height: "100vh", paddingRight: "2px" }}
+        className="flex-1 overflow-y-auto custom-scrollbar px-1 py-2"
+        style={{ height: "100vh" }}
       >
         {loading ? (
-          <div className="text-gray-500 p-2">Loading…</div>
+          <div className="text-gray-500 px-3 py-2">Loading…</div>
         ) : error ? (
-          <div className="text-red-500 p-2">{error}</div>
+          <div className="text-red-500 px-3 py-2">{error}</div>
         ) : (
           <>
             <div
-              className="flex items-center py-1 px-2 hover:bg-zinc-700 rounded cursor-pointer"
+              className="flex items-center gap-1 px-3 py-2 cursor-pointer font-medium hover:bg-zinc-700 rounded-md transition-colors"
               onClick={() =>
                 handleToggleDirectory(rootPath, expandedPaths.has(rootPath))
               }
             >
               <span className="w-4">
                 {expandedPaths.has(rootPath) ? (
-                  <ChevronDown size={FONT_SIZE} />
+                  <ChevronDown size={14} />
                 ) : (
-                  <ChevronRight size={FONT_SIZE} />
+                  <ChevronRight size={14} />
                 )}
               </span>
-              <FolderOpen size={FONT_SIZE} className="text-blue-400" />
-              <span className="ml-1 font-semibold">PROJECT ROOT</span>
+              <FolderOpen size={16} className="text-yellow-400" />
+              <span className="ml-1 font-semibold">
+                {rootPath.split(/[\\/]/).filter(Boolean).pop()}
+              </span>
             </div>
             {expandedPaths.has(rootPath) && renderFileTree(rootPath)}
           </>
