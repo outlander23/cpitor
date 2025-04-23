@@ -1,18 +1,23 @@
 import React, { useState } from "react";
 import { useEditor } from "../../context/EditorContext";
-import { Settings, Save } from "lucide-react";
+import { Settings as SettingsIcon, Save, ChevronRight } from "lucide-react";
 
-const SettingsPage = () => {
+export default function SettingsPage() {
   const { settings, updateSettings } = useEditor();
+  // use localSettings for preview; palette comes from localSettings.theme
   const [localSettings, setLocalSettings] = useState(settings);
+  const [activeTab, setActiveTab] = useState("general");
+  const palette = settings.themeColors[localSettings.theme];
 
   const handleChange = (key, value) => {
     if (key === "cppFlags") {
       try {
-        const parsed = JSON.parse(value);
-        setLocalSettings((prev) => ({ ...prev, [key]: parsed }));
-      } catch (error) {
-        console.error("Invalid JSON for environment variables");
+        setLocalSettings((prev) => ({
+          ...prev,
+          [key]: JSON.parse(value),
+        }));
+      } catch {
+        // invalid JSON, ignore
       }
     } else {
       setLocalSettings((prev) => ({ ...prev, [key]: value }));
@@ -22,7 +27,10 @@ const SettingsPage = () => {
   const handleFontSizeChange = (component, value) => {
     setLocalSettings((prev) => ({
       ...prev,
-      fontSizes: { ...prev.fontSizes, [component]: Number(value) },
+      fontSizes: {
+        ...prev.fontSizes,
+        [component]: Number(value),
+      },
     }));
   };
 
@@ -30,119 +38,274 @@ const SettingsPage = () => {
     updateSettings(localSettings);
   };
 
+  const tabs = [
+    { id: "general", label: "General" },
+    { id: "fontSizes", label: "Font Sizes" },
+    { id: "editor", label: "Editor" },
+    { id: "cpp", label: "C++ Config" },
+  ];
+
   return (
-    <div className="flex h-full bg-[#1e1e1e] text-gray-100 font-mono">
+    <div
+      className="flex h-full overflow-hidden"
+      style={{
+        backgroundColor: palette.editorBackground,
+        color: palette.editorForeground,
+      }}
+    >
       {/* Sidebar */}
-      <aside className="w-64 bg-[#252526] border-r border-[#333] p-4">
-        <div className="flex items-center gap-2 mb-6 text-lg font-bold text-white">
-          <Settings size={20} />
+      <aside
+        className="flex-shrink-0 w-60 p-4"
+        style={{
+          backgroundColor: palette.sidebarBackground,
+          color: palette.sidebarForeground,
+          borderRight: `1px solid ${palette.border}`,
+        }}
+      >
+        <div className="flex items-center mb-6 text-lg font-semibold">
+          <SettingsIcon size={18} className="mr-2" />
           Settings
         </div>
-        <nav className="space-y-2 text-sm">
-          <div className="text-gray-300 hover:text-white cursor-pointer">
-            General
-          </div>
-          <div className="text-gray-300 hover:text-white cursor-pointer">
-            Font Sizes
-          </div>
-          <div className="text-gray-300 hover:text-white cursor-pointer">
-            C++ Config
-          </div>
+        <nav className="space-y-1">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex items-center w-full px-3 py-2 rounded-md transition"
+                style={{
+                  backgroundColor: isActive
+                    ? palette.lineHighlight
+                    : "transparent",
+                  color: isActive
+                    ? palette.editorForeground
+                    : palette.sidebarForeground,
+                }}
+              >
+                <span className="flex-1 text-sm">{tab.label}</span>
+                <ChevronRight size={14} />
+              </button>
+            );
+          })}
         </nav>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 p-6 overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-6">Editor Settings</h2>
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <h2 className="text-2xl font-semibold">Editor Settings</h2>
 
-        <div className="space-y-6">
-          {/* Theme */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
-              Theme
-            </label>
-            <div className="flex flex-row items-center space-x-6 pl-2">
-              <label className="inline-flex items-center cursor-pointer">
+        {activeTab === "general" && (
+          <section className="space-y-6">
+            {/* Theme */}
+            <div>
+              <h3 className="text-lg font-medium mb-2">Theme</h3>
+              <div className="flex space-x-6">
+                {["light", "dark"].map((t) => (
+                  <label
+                    key={t}
+                    className="inline-flex items-center cursor-pointer"
+                    style={{ color: palette.editorForeground }}
+                  >
+                    <input
+                      type="radio"
+                      name="theme"
+                      value={t}
+                      checked={localSettings.theme === t}
+                      onChange={(e) => handleChange("theme", e.target.value)}
+                    />
+                    <span className="ml-2 capitalize">{t}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Auto Save */}
+            <div>
+              <h3 className="text-lg font-medium mb-2">Auto Save</h3>
+              <label
+                className="inline-flex items-center cursor-pointer"
+                style={{ color: palette.editorForeground }}
+              >
                 <input
-                  type="radio"
-                  className="form-radio text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-400"
-                  name="theme"
-                  value="light"
-                  checked={localSettings.theme === "light"}
-                  onChange={(e) => handleChange("theme", e.target.value)}
+                  type="checkbox"
+                  checked={localSettings.autoSave}
+                  onChange={(e) => handleChange("autoSave", e.target.checked)}
                 />
-                <span className="ml-2 text-sm text-gray-200">Light</span>
+                <span className="ml-2">Enable auto save</span>
               </label>
+              {localSettings.autoSave && (
+                <div className="mt-2 flex items-center space-x-2">
+                  <label style={{ color: palette.editorForeground }}>
+                    Delay (ms):
+                  </label>
+                  <input
+                    type="number"
+                    value={localSettings.autoSaveDelay}
+                    onChange={(e) =>
+                      handleChange("autoSaveDelay", Number(e.target.value))
+                    }
+                    className="w-24 px-2 py-1 rounded"
+                    style={{
+                      backgroundColor: palette.gutterBackground,
+                      color: palette.editorForeground,
+                      border: `1px solid ${palette.border}`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
 
-              <label className="inline-flex items-center cursor-pointer">
+            {/* Minimap */}
+            <div>
+              <h3 className="text-lg font-medium mb-2">Minimap</h3>
+              <label
+                className="inline-flex items-center cursor-pointer"
+                style={{ color: palette.editorForeground }}
+              >
                 <input
-                  type="radio"
-                  className="form-radio text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-400"
-                  name="theme"
-                  value="dark"
-                  checked={localSettings.theme === "dark"}
-                  onChange={(e) => handleChange("theme", e.target.value)}
+                  type="checkbox"
+                  checked={localSettings.minimap}
+                  onChange={(e) => handleChange("minimap", e.target.checked)}
                 />
-                <span className="ml-2 text-sm text-gray-200">Dark</span>
+                <span className="ml-2">Show minimap</span>
               </label>
             </div>
-          </div>
 
-          {/* Font Sizes */}
-          {["navbar", "browser", "terminal", "codeEditor"].map((key) => (
-            <div key={key}>
-              <label className="block text-sm font-semibold mb-1 capitalize">
-                {key.replace(/([A-Z])/g, " $1")} Font Size
+            {/* Font Family */}
+            <div>
+              <h3 className="text-lg font-medium mb-2">Font Family</h3>
+              <input
+                type="text"
+                value={localSettings.fontFamily}
+                onChange={(e) => handleChange("fontFamily", e.target.value)}
+                className="w-full px-3 py-2 rounded"
+                style={{
+                  backgroundColor: palette.gutterBackground,
+                  color: palette.editorForeground,
+                  border: `1px solid ${palette.border}`,
+                }}
+              />
+            </div>
+          </section>
+        )}
+
+        {activeTab === "fontSizes" && (
+          <section className="space-y-4">
+            <h3 className="text-lg font-medium">Font Sizes</h3>
+            {Object.entries(localSettings.fontSizes).map(([key, size]) => (
+              <div key={key} className="flex items-center space-x-4">
+                <label
+                  className="w-40 capitalize"
+                  style={{ color: palette.editorForeground }}
+                >
+                  {key}:
+                </label>
+                <input
+                  type="number"
+                  value={size}
+                  onChange={(e) => handleFontSizeChange(key, e.target.value)}
+                  className="w-20 px-2 py-1 rounded"
+                  style={{
+                    backgroundColor: palette.gutterBackground,
+                    color: palette.editorForeground,
+                    border: `1px solid ${palette.border}`,
+                  }}
+                />
+              </div>
+            ))}
+          </section>
+        )}
+
+        {activeTab === "editor" && (
+          <section className="space-y-4">
+            <h3 className="text-lg font-medium ">Editor Behavior</h3>
+            {[
+              { key: "formatOnType", label: "Format on Type" },
+              { key: "formatOnPaste", label: "Format on Paste" },
+              {
+                key: "bracketPairColorization",
+                label: "Bracket Pair Colorization",
+              },
+              { key: "codeFolding", label: "Code Folding" },
+            ].map(({ key, label }) => (
+              <label
+                key={key}
+                className="inline-flex items-center cursor-pointer space-x-2 p-2 rounded"
+                style={{ color: palette.editorForeground }}
+              >
+                <input
+                  type="checkbox"
+                  checked={localSettings[key]}
+                  onChange={(e) => handleChange(key, e.target.checked)}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </section>
+        )}
+
+        {activeTab === "cpp" && (
+          <section className="space-y-6">
+            <h3 className="text-lg font-medium">C++ Runtime & Flags</h3>
+            <div>
+              <label
+                className="block mb-1"
+                style={{ color: palette.editorForeground }}
+              >
+                Max Runtime (s)
               </label>
               <input
                 type="number"
-                value={localSettings.fontSizes[key]}
-                onChange={(e) => handleFontSizeChange(key, e.target.value)}
-                className="bg-[#1e1e1e] border border-[#3c3c3c] p-2 w-full rounded focus:outline-none"
+                value={localSettings.maxRuntime}
+                onChange={(e) =>
+                  handleChange("maxRuntime", Number(e.target.value))
+                }
+                className="w-24 px-2 py-1 rounded"
+                style={{
+                  backgroundColor: palette.gutterBackground,
+                  color: palette.editorForeground,
+                  border: `1px solid ${palette.border}`,
+                }}
               />
             </div>
-          ))}
-
-          {/* C++ Runtime */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">
-              Runtime for C++
-            </label>
-            <input
-              type="text"
-              value={localSettings.runtimeForCPP}
-              onChange={(e) => handleChange("runtimeForCPP", e.target.value)}
-              className="bg-[#1e1e1e] border border-[#3c3c3c] p-2 w-full rounded focus:outline-none"
-            />
-          </div>
-
-          {/* C++ Env Vars */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">
-              C++ Environment Variables (JSON)
-            </label>
-            <textarea
-              value={JSON.stringify(localSettings.cppFlags, null, 2)}
-              onChange={(e) => handleChange("cppFlags", e.target.value)}
-              className="bg-[#1e1e1e] border border-[#3c3c3c] p-2 w-full rounded focus:outline-none"
-              rows="6"
-            />
-          </div>
-        </div>
+            <div>
+              <label
+                className="block mb-1"
+                style={{ color: palette.editorForeground }}
+              >
+                Environment Flags (JSON)
+              </label>
+              <textarea
+                value={JSON.stringify(localSettings.cppFlags, null, 2)}
+                onChange={(e) => handleChange("cppFlags", e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 rounded"
+                style={{
+                  backgroundColor: palette.gutterBackground,
+                  color: palette.editorForeground,
+                  border: `1px solid ${palette.border}`,
+                }}
+              />
+            </div>
+          </section>
+        )}
 
         {/* Save Button */}
-        <div className="mt-10 text-right">
+        <div className="pt-6 border-t" style={{ borderColor: palette.border }}>
           <button
             onClick={handleSave}
-            className="inline-flex items-center gap-2 bg-[#0e639c] hover:bg-[#1177bb] text-white font-medium px-4 py-2 rounded"
+            className="inline-flex items-center px-4 py-2 rounded font-medium transition"
+            style={{
+              backgroundColor: palette.navbarBackground,
+              color: palette.navbarForeground,
+            }}
           >
-            <Save size={16} />
+            <Save size={16} className="mr-2" />
             Save Settings
           </button>
         </div>
       </main>
     </div>
   );
-};
-
-export default SettingsPage;
+}

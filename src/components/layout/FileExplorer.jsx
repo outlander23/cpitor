@@ -34,7 +34,10 @@ function FileBrowser() {
   const [rootPath, setRootPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { showFileExplorer, openFile, isDirOpen, openDirPath } = useEditor();
+  const { showFileExplorer, openFile, isDirOpen, openDirPath, settings } =
+    useEditor();
+
+  const palette = settings.themeColors[settings.theme];
 
   useEffect(() => {
     async function init() {
@@ -68,7 +71,6 @@ function FileBrowser() {
           isDir: item.isDirectory,
         }))
       );
-
       setFileTree((prev) => ({ ...prev, [dirPath]: processed }));
       return processed;
     } catch (e) {
@@ -93,18 +95,16 @@ function FileBrowser() {
 
   function renderFileTree(dirPath, depth = 1) {
     const items = fileTree[dirPath] || [];
-
     return items.map((item) => {
       const fullPath = item.path;
       const isOpen = expandedPaths.has(fullPath);
       const isCppFile = !item.isDir && /\.(cpp|c|h|hpp)$/i.test(item.name);
-
       if (!item.isDir && !isCppFile) return null;
 
       return (
         <div key={`${fullPath}-${item.name}`}>
           <div
-            className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md hover:bg-zinc-700 transition-colors`}
+            className="flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md hover:bg-[#2A2D2E] transition-colors"
             style={{ paddingLeft: depth * 16 }}
             onClick={() => {
               if (item.isDir) {
@@ -117,9 +117,9 @@ function FileBrowser() {
             <span className="w-4">
               {item.isDir ? (
                 isOpen ? (
-                  <ChevronDown size={14} />
+                  <ChevronDown size={14} style={{ color: "#D4D4D4" }} />
                 ) : (
-                  <ChevronRight size={14} />
+                  <ChevronRight size={14} style={{ color: "#D4D4D4" }} />
                 )
               ) : (
                 <span />
@@ -128,9 +128,9 @@ function FileBrowser() {
             {item.isDir ? (
               <>
                 {isOpen ? (
-                  <FolderOpen className="text-yellow-400" size={16} />
+                  <FolderOpen style={{ color: "#90A4AE" }} size={16} />
                 ) : (
-                  <Folder className="text-yellow-400" size={16} />
+                  <Folder style={{ color: "#90A4AE" }} size={16} />
                 )}
                 <span className="truncate text-sm">{item.name}</span>
               </>
@@ -152,20 +152,31 @@ function FileBrowser() {
 
   return (
     <div
-      className="bg-zinc-900 text-gray-200 w-full max-w-sm border-r border-zinc-800"
+      className="w-full max-w-sm h-full flex flex-col border-r"
       style={{
         fontSize: `${FONT_SIZE}px`,
         lineHeight: LINE_HEIGHT,
+        backgroundColor: palette.sidebarBackground,
+        color: palette.sidebarForeground,
+        borderRight: `1px solid ${palette.border}`,
       }}
     >
-      <div className="p-4 border-b border-zinc-800 bg-zinc-950 text-xs font-semibold tracking-wider text-gray-300 uppercase">
-        Explorer
+      <div
+        style={{
+          padding: "1rem",
+          borderBottom: `1px solid ${palette.border}`,
+          backgroundColor: palette.headerBackground,
+          color: palette.headerForeground,
+          fontSize: "0.75rem",
+          fontWeight: "bold",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+        }}
+      >
+        File Explorer
       </div>
 
-      <div
-        className="flex-1 overflow-y-auto custom-scrollbar px-1 py-2"
-        style={{ height: "100vh" }}
-      >
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-1 py-2">
         {loading ? (
           <div className="text-gray-500 px-3 py-2">Loading…</div>
         ) : error ? (
@@ -173,7 +184,7 @@ function FileBrowser() {
         ) : (
           <>
             <div
-              className="flex items-center gap-1 px-3 py-2 cursor-pointer font-medium hover:bg-zinc-700 rounded-md transition-colors"
+              className="flex items-center gap-1 px-3 py-2 cursor-pointer font-medium hover:bg-blue-950 rounded-md transition-colors"
               onClick={() =>
                 handleToggleDirectory(rootPath, expandedPaths.has(rootPath))
               }

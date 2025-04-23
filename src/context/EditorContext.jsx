@@ -20,7 +20,7 @@ export function EditorProvider({ children }) {
   const [activeFileName, setActiveFileName] = useState("");
 
   // --- Editor Appearance ---
-  const [theme, setTheme] = useState("vs-dark");
+  const [theme, setTheme] = useState("dark");
   const [showFileExplorer, setShowFileExplorer] = useState(true);
 
   // --- Directory State ---
@@ -53,6 +53,14 @@ export function EditorProvider({ children }) {
         setSettings(combined);
         setHasSettingsLoaded(true);
 
+        if (combined.theme === "dark") {
+          // theme = "dark";
+          setTheme("dark");
+        } else if (combined.theme === "light") {
+          // theme = "light";
+          setTheme("light");
+        }
+
         console.log("Store initialized:", combined);
       } catch (err) {
         console.error("Failed to load settings:", err);
@@ -71,6 +79,14 @@ export function EditorProvider({ children }) {
       await store.set("settings", updated);
       await store.save();
       setSettings(updated);
+      setHasSettingsLoaded(true);
+      if (newSettings.theme == "dark") {
+        // theme = "dark";
+        setTheme("dark");
+      } else if (newSettings.theme == "light") {
+        // theme = "light";
+        setTheme("light");
+      }
       console.log("Settings updated:", updated);
     } catch (err) {
       console.error("Failed to update settings:", err);

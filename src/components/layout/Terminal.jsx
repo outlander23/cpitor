@@ -65,15 +65,32 @@ export default function Terminal() {
     updateTerminalOutput(() => "");
     setOutputContent("");
   };
+  const theme = settings.theme;
+
+  // set theme colors
+  const terminalBg = theme === "dark" ? "bg-[#1e1e1e]" : "bg-[#f9f9f9]";
+  const terminalText = theme === "dark" ? "text-gray-200" : "text-gray-800";
+  const terminalHeaderBg = theme === "dark" ? "bg-gray-800" : "bg-gray-100";
+  const terminalHeaderBorder =
+    theme === "dark" ? "border-gray-700" : "border-gray-300";
+  const terminalIcon = theme === "dark" ? "text-gray-400" : "text-gray-700";
+  const terminalTitle = theme === "dark" ? "text-gray-200" : "text-gray-800";
+  const terminalSubTitle = theme === "dark" ? "text-gray-400" : "text-gray-500";
   return (
-    <div className="flex flex-col h-full bg-gray-900 border-t border-gray-700 shadow-lg">
+    <div
+      className={`flex flex-col h-full ${terminalBg} border-t ${terminalHeaderBorder} shadow-lg`}
+    >
       {/* Terminal Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+      <div
+        className={`flex items-center justify-between px-4 py-2 ${terminalHeaderBg} border-b ${terminalHeaderBorder}`}
+      >
         <div className="flex items-center space-x-2">
-          <FaTerminal className="text-gray-400" />
-          <span className="text-sm font-semibold text-gray-200">TERMINAL</span>
+          <FaTerminal className={terminalIcon} />
+          <span className={`text-sm font-semibold ${terminalTitle}`}>
+            TERMINAL
+          </span>
           {activeFile && (
-            <span className="text-xs text-gray-400">
+            <span className={`text-xs ${terminalSubTitle}`}>
               ({activeFile.name || "No file selected"})
             </span>
           )}
@@ -84,8 +101,8 @@ export default function Terminal() {
             disabled={isRunning || !activeFile}
             className={`p-2 rounded-full transition-colors duration-200 ${
               isRunning || !activeFile
-                ? "text-gray-600 cursor-not-allowed"
-                : "text-green-400 hover:bg-gray-700 hover:text-green-300"
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-green-500 hover:bg-gray-300 hover:text-green-600"
             }`}
             title="Run C++ File"
             aria-label="Run C++ File"
@@ -94,7 +111,7 @@ export default function Terminal() {
           </button>
           <button
             onClick={clearTerminal}
-            className="p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-gray-200 transition-colors duration-200"
+            className={`p-2 rounded-full ${terminalIcon} hover:bg-gray-300 hover:${terminalTitle} transition-colors duration-200`}
             title="Clear Terminal"
             aria-label="Clear Terminal"
           >
@@ -106,7 +123,7 @@ export default function Terminal() {
       {/* Terminal Output */}
       <div
         ref={terminalRef}
-        className="flex-grow overflow-y-auto p-4 font-mono text-sm bg-gray-900 text-gray-200"
+        className={`flex-grow overflow-y-auto p-4 font-mono text-sm ${terminalBg} ${terminalText}`}
       >
         <pre className="whitespace-pre-wrap leading-relaxed">
           {terminalOutput || "Terminal ready. Select a C++ file to run."}

@@ -2,38 +2,75 @@ import React from "react";
 import {
   FaHome,
   FaFolderOpen,
-  FaSearch,
-  FaTerminal,
-  FaPlay,
   FaCog,
+  FaSun,
+  FaMoon,
+  FaBook,
+  FaInfoCircle,
+  FaClock,
 } from "react-icons/fa";
 import { useEditor } from "../../context/EditorContext";
 
 export default function ActivityBar() {
-  const { showFileExplorer, toggleFileExplorer, changeView, activeView } =
-    useEditor();
+  const {
+    showFileExplorer,
+    toggleFileExplorer,
+    changeView,
+    activeView,
+    theme,
+    toggleTheme,
+    settings,
+  } = useEditor();
 
-  // Updated handlers that change the active view
+  // Defensive fallback for theme and palette
+  const currentTheme = theme === "dark" || theme === "light" ? theme : "light";
+  const palette = settings?.themeColors?.[currentTheme] ||
+    settings?.themeColors?.light || {
+      sidebarBackground: "#f5f5f5",
+      border: "#dddddd",
+      editorForeground: "#333333",
+      sidebarForeground: "#333333",
+      navbarBackground: "#eaeaea",
+      navbarForeground: "#333333",
+      lineHighlight: "#f0f0f0",
+    };
+
+  console.log("activity", palette);
+
   const goHome = () => changeView("home");
   const openSettings = () => changeView("settings");
   const openEditor = () => changeView("editor");
 
   return (
     <div
-      className="
-        flex flex-col justify-between
-        w-12 h-screen overflow-hidden
-        bg-gray-800
-      "
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        width: 48,
+        height: "100vh",
+        overflow: "hidden",
+        backgroundColor: palette.sidebarBackground,
+        borderRight: `1px solid ${palette.border}`,
+      }}
     >
-      {/* Top group: never shrink */}
-      <div className="flex-shrink-0 flex flex-col items-center space-y-6 py-4">
+      {/* Top group */}
+      <div
+        style={{
+          padding: 12,
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          alignItems: "center",
+        }}
+      >
         <ActivityButton
           title="Home"
           active={activeView === "home"}
           onClick={goHome}
+          palette={palette}
         >
-          <FaHome className="w-5 h-5" />
+          <FaHome size={20} />
         </ActivityButton>
 
         <ActivityButton
@@ -43,64 +80,96 @@ export default function ActivityBar() {
             toggleFileExplorer();
             openEditor();
           }}
+          palette={palette}
         >
-          <FaFolderOpen className="w-5 h-5" />
+          <FaFolderOpen size={20} />
+        </ActivityButton>
+
+        <ActivityButton title="Timer" palette={palette}>
+          <FaClock size={20} />
         </ActivityButton>
       </div>
 
-      {/* Middle scrollable group */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center space-y-6 py-4">
+      {/* Middle group */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          alignItems: "center",
+          padding: 12,
+        }}
+      >
         <ActivityButton
-          title="Search"
-          active={activeView === "search"}
-          onClick={() => changeView("search")}
+          title="Docs"
+          active={activeView === "docs"}
+          onClick={() => changeView("docs")}
+          palette={palette}
         >
-          <FaSearch className="w-5 h-5" />
+          <FaBook size={20} />
         </ActivityButton>
 
         <ActivityButton
-          title="Terminal"
-          active={activeView === "terminal"}
-          onClick={() => changeView("editor")} // Just focus on terminal in editor view
+          title="About"
+          active={activeView === "about"}
+          onClick={() => changeView("about")}
+          palette={palette}
         >
-          <FaTerminal className="w-5 h-5" />
+          <FaInfoCircle size={20} />
         </ActivityButton>
 
         <ActivityButton
-          title="Run & Debug"
-          active={activeView === "debug"}
-          onClick={() => changeView("debug")}
+          title="Toggle Theme"
+          onClick={toggleTheme}
+          palette={palette}
         >
-          <FaPlay className="w-5 h-5" />
+          {currentTheme === "dark" ? (
+            <FaSun size={20} color={palette.navbarForeground} />
+          ) : (
+            <FaMoon size={20} color={palette.navbarForeground} />
+          )}
         </ActivityButton>
 
         <ActivityButton
           title="Settings"
           active={activeView === "settings"}
           onClick={openSettings}
+          palette={palette}
         >
-          <FaCog className="w-5 h-5" />
+          <FaCog size={20} />
         </ActivityButton>
       </div>
+
+      {/* Bottom group (empty for now) */}
+      <div style={{ padding: 12 }} />
     </div>
   );
 }
 
-function ActivityButton({ title, active = false, onClick, children }) {
+function ActivityButton({ title, active = false, onClick, children, palette }) {
+  const baseStyle = {
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 6,
+    transition: "background-color 0.15s, color 0.15s",
+    cursor: "pointer",
+    backgroundColor: active ? palette.lineHighlight : "transparent",
+    color: active ? palette.editorForeground : palette.sidebarForeground,
+    borderLeft: active ? `2px solid ${palette.navbarBackground}` : "none",
+  };
+
   return (
     <button
       title={title}
       onClick={onClick}
-      className={`
-        flex items-center justify-center
-        w-10 h-10 p-1 rounded-lg
-        transition-colors duration-150
-        ${
-          active
-            ? "bg-gray-700 border-l-2 border-blue-400 text-white"
-            : "text-gray-400 hover:bg-gray-700 hover:text-white"
-        }
-      `}
+      style={baseStyle}
+      aria-pressed={active}
+      tabIndex={0}
     >
       {children}
       <span className="sr-only">{title}</span>

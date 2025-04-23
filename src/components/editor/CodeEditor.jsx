@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useEditor } from "../../context/EditorContext";
 
@@ -6,15 +6,21 @@ export default function CodeEditor() {
   const {
     code,
     handleCodeChange,
-    theme,
     saveFile,
     openFiles,
     activeFile,
     setActiveFile,
     closeFile,
     openFileFromLoadscreen,
+    settings,
   } = useEditor();
 
+  // derive palette & correct monaco theme from settings
+  const palette = settings.themeColors[settings.theme];
+  // Monaco’s built‑in light theme is "vs-light" (not "light")
+  const monacoTheme = settings.theme === "light" ? "light" : "vs-dark";
+
+  console.log("CodeEditor render", monacoTheme);
   // Sync editor content with active file
   useEffect(() => {
     if (!activeFile) return;
@@ -22,7 +28,7 @@ export default function CodeEditor() {
     if (file && file.content !== code) {
       handleCodeChange(file.content);
     }
-  }, [activeFile, openFiles, code, handleCodeChange]);
+  }, [activeFile, openFiles, code, handleCodeChange, settings.theme]);
 
   // Save file on Ctrl+S / Cmd+S
   useEffect(() => {
@@ -37,7 +43,13 @@ export default function CodeEditor() {
   }, [saveFile]);
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-white">
+    <div
+      className="flex flex-col h-full"
+      style={{
+        backgroundColor: palette.editorBackground,
+        color: palette.editorForeground,
+      }}
+    >
       <TabBar
         files={openFiles}
         activePath={activeFile?.path}
@@ -45,18 +57,19 @@ export default function CodeEditor() {
         onClose={closeFile}
         onOpen={openFileFromLoadscreen}
       />
+
       <div className="flex-1 relative">
         {activeFile ? (
           <Editor
             language="cpp"
             value={code}
             onChange={handleCodeChange}
-            theme={theme}
+            theme={monacoTheme}
             options={{
               automaticLayout: true,
-              fontSize: 14,
-              fontFamily: "'Cascadia Code', 'Fira Code', monospace",
-              minimap: { enabled: false },
+              fontSize: settings.fontSizes.codeEditor,
+              fontFamily: settings.fontFamily,
+              minimap: { enabled: settings.minimap },
               scrollBeyondLastLine: false,
               lineNumbers: "on",
               renderLineHighlight: "all",
@@ -66,68 +79,113 @@ export default function CodeEditor() {
               scrollBar: { vertical: "auto", horizontal: "auto" },
               roundedSelection: true,
               cursorStyle: "line",
+              formatOnType: settings.formatOnType,
+              formatOnPaste: settings.formatOnPaste,
+              bracketPairColorization: {
+                enabled: settings.bracketPairColorization,
+              },
+              folding: settings.codeFolding,
             }}
-            className="border-t border-gray-800 shadow-lg"
+            className="h-full border-t shadow-lg"
+            style={{ borderColor: palette.border }}
           />
         ) : (
-          <WelcomeView onOpen={openFileFromLoadscreen} />
+          <WelcomeView onOpen={openFileFromLoadscreen} palette={palette} />
         )}
       </div>
     </div>
   );
 }
-
 function TabBar({ files, activePath, onSelect, onClose, onOpen }) {
+  const { settings } = useEditor();
+  const palette = settings.themeColors[settings.theme];
+
+  console.log(palette);
+
   return (
-    <div className="flex items-center bg-gray-800 border-b border-gray-700 text-sm h-12">
-      <div className="flex-1 flex overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+    <div
+      className="flex items-center text-sm h-12"
+      style={{
+        backgroundColor: palette.sidebarBackground,
+        borderBottom: `1px solid ${palette.border}`,
+        color: palette.sidebarForeground,
+      }}
+    >
+      <div
+        className="flex-1 flex overflow-x-auto scrollbar-thin"
+        style={{
+          scrollbarColor: `${palette.gutterForeground} ${palette.gutterBackground}`,
+        }}
+      >
         {files.length === 0 ? (
-          <div className="px-4 py-2 text-gray-400 italic">No files open</div>
+          <div
+            className="px-4 py-2 italic"
+            style={{ color: palette.gutterForeground }}
+          >
+            No files open
+          </div>
         ) : (
-          files.map((file) => (
-            <div
-              key={file.path}
-              onClick={() => onSelect(file.path)}
-              role="tab"
-              aria-selected={activePath === file.path}
-              className={`flex items-center px-4 py-2 cursor-pointer transition-all duration-200 whitespace-nowrap
-                ${
-                  activePath === file.path
-                    ? "bg-gray-900 text-white font-medium border-b-2 border-blue-500"
-                    : "text-gray-400 hover:bg-gray-700 hover:text-white"
-                }`}
-            >
-              <span className="truncate max-w-xs">{file.name}</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose(file.path);
+          files.map((file) => {
+            const isActive = activePath === file.path;
+            return (
+              <div
+                key={file.path}
+                onClick={() => onSelect(file.path)}
+                role="tab"
+                aria-selected={isActive}
+                className="flex items-center px-4 py-2 cursor-pointer transition-all duration-200 whitespace-nowrap"
+                style={{
+                  backgroundColor: isActive
+                    ? palette.lineHighlight
+                    : "transparent",
+                  color: isActive
+                    ? palette.editorForeground
+                    : palette.sidebarForeground,
+                  borderBottom: isActive
+                    ? `2px solid ${palette.navbarBackground}`
+                    : "none",
                 }}
-                className="ml-2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600 rounded-full transition-colors"
-                aria-label={`Close ${file.name}`}
               >
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
+                <span className="truncate max-w-xs">{file.name}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClose(file.path);
+                  }}
+                  className="ml-2 w-5 h-5 flex items-center justify-center rounded-full transition-colors"
+                  style={{
+                    color: palette.sidebarForeground,
+                    backgroundColor: isActive
+                      ? palette.lineHighlight
+                      : "transparent",
+                  }}
+                  aria-label={`Close ${file.name}`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          ))
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            );
+          })
         )}
       </div>
+
       <button
         onClick={onOpen}
-        className="px-3 py-2 flex-shrink-0 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+        className="px-3 py-2 flex-shrink-0 transition-colors"
+        style={{ color: palette.sidebarForeground }}
         title="Open File"
         aria-label="Open File"
       >
@@ -150,15 +208,25 @@ function TabBar({ files, activePath, onSelect, onClose, onOpen }) {
   );
 }
 
-function WelcomeView({ onOpen }) {
+function WelcomeView({ onOpen, palette }) {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 text-gray-300">
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center"
+      style={{
+        backgroundColor: palette.editorBackground,
+        color: palette.gutterForeground,
+      }}
+    >
       <h2 className="text-3xl font-semibold mb-6">
         Welcome to Your C++ Editor
       </h2>
       <button
         onClick={onOpen}
-        className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        className="px-8 py-3 rounded-lg transition-transform transform hover:scale-105 focus:outline-none"
+        style={{
+          backgroundColor: palette.navbarBackground,
+          color: palette.navbarForeground,
+        }}
         aria-label="Open C++ File"
       >
         Open C++ File

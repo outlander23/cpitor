@@ -10,17 +10,16 @@ import HomePage from "./components/home/home";
 import Split from "react-split";
 
 function AppContent() {
-  const { showFileExplorer, activeView } = useEditor();
+  const { showFileExplorer, activeView, settings } = useEditor();
+  const palette = settings.themeColors[settings.theme];
 
   const renderMainContent = () => {
     if (activeView === "home") {
       return <HomePage />;
     }
-
     if (activeView === "settings") {
       return <SettingsPage />;
     }
-
     if (activeView === "editor") {
       return (
         <Split
@@ -40,7 +39,7 @@ function AppContent() {
           )}
           <Split
             className="flex flex-col h-full"
-            sizes={[70, 30]}
+            sizes={[90, 10]}
             minSize={[200, 100]}
             gutterSize={4}
             direction="vertical"
@@ -58,13 +57,19 @@ function AppContent() {
         </Split>
       );
     }
-
     return <HomePage />;
   };
 
   return (
-    <div className="h-screen w-screen bg-[#1e1e1e] text-white font-sans flex flex-col overflow-hidden">
+    <div
+      className="h-screen w-screen font-sans flex flex-col overflow-hidden"
+      style={{
+        backgroundColor: palette.editorBackground,
+        color: palette.editorForeground,
+      }}
+    >
       <TitleBar />
+
       <div className="flex flex-1 overflow-hidden">
         <ActivityBar />
         <div className="flex-1 overflow-hidden">{renderMainContent()}</div>
