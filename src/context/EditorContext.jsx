@@ -93,6 +93,12 @@ export function EditorProvider({ children }) {
     }
   };
 
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    updateSettings({ theme: newTheme });
+  };
+
   const getSetting = (key) =>
     settings[key] !== undefined ? settings[key] : defaultSettings[key];
 
@@ -217,6 +223,7 @@ export function EditorProvider({ children }) {
     // change view
     activeView,
     changeView,
+    toggleTheme,
   };
 
   return (

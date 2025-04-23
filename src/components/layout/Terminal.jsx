@@ -44,7 +44,7 @@ export default function Terminal() {
         filePath: activeFile.path,
         input: inputContent,
         cppenv: settings.cppFlags,
-        maxruntime: settings.runtimeForCPP * 1,
+        maxruntime: settings.maxRuntime * 1,
       });
 
       console.log("Response:", response);

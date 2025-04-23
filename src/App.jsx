@@ -39,7 +39,7 @@ function AppContent() {
           )}
           <Split
             className="flex flex-col h-full"
-            sizes={[90, 10]}
+            sizes={[85, 15]}
             minSize={[200, 100]}
             gutterSize={4}
             direction="vertical"

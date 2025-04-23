@@ -34,7 +34,7 @@ const HomePage = () => {
             className="text-4xl md:text-5xl font-bold mb-3 tracking-tight"
             style={{ color: palette.navbarForeground }}
           >
-            🚀 Welcome to C++ Editor
+            🚀 Welcome to Cpitor
           </h1>
           <p
             className="text-lg md:text-xl"

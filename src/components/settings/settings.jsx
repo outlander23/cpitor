@@ -3,24 +3,27 @@ import { useEditor } from "../../context/EditorContext";
 import { Settings as SettingsIcon, Save, ChevronRight } from "lucide-react";
 
 export default function SettingsPage() {
-  const { settings, updateSettings } = useEditor();
+  const { settings, updateSettings, toggleTheme } = useEditor();
   // use localSettings for preview; palette comes from localSettings.theme
   const [localSettings, setLocalSettings] = useState(settings);
   const [activeTab, setActiveTab] = useState("general");
   const palette = settings.themeColors[localSettings.theme];
 
   const handleChange = (key, value) => {
-    if (key === "cppFlags") {
-      try {
-        setLocalSettings((prev) => ({
-          ...prev,
-          [key]: JSON.parse(value),
-        }));
-      } catch {
-        // invalid JSON, ignore
+    setLocalSettings((prev) => {
+      if (key === "cppFlags") {
+        try {
+          return { ...prev, [key]: JSON.parse(value) };
+        } catch {
+          return prev;
+        }
       }
-    } else {
-      setLocalSettings((prev) => ({ ...prev, [key]: value }));
+
+      return { ...prev, [key]: value };
+    });
+
+    if (key === "theme") {
+      toggleTheme();
     }
   };
 
