@@ -104,7 +104,7 @@ function FileBrowser() {
       return (
         <div key={`${fullPath}-${item.name}`}>
           <div
-            className="flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md hover:bg-[#2A2D2E] transition-colors"
+            className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${bgHover} ${textColor}`}
             style={{ paddingLeft: depth * 16 }}
             onClick={() => {
               if (item.isDir) {
@@ -147,8 +147,12 @@ function FileBrowser() {
       );
     });
   }
+  const bgHover =
+    settings.theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-700";
+  const textColor =
+    settings.theme === "light" ? "text-gray-800" : "text-gray-100";
 
-  // if (!showFileExplorer || !isDirOpen) return null;
+  if (!showFileExplorer || !isDirOpen) return null;
 
   return (
     <div
@@ -184,7 +188,7 @@ function FileBrowser() {
         ) : (
           <>
             <div
-              className="flex items-center gap-1 px-3 py-2 cursor-pointer font-medium hover:bg-blue-950 rounded-md transition-colors"
+              className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${bgHover} ${textColor}`}
               onClick={() =>
                 handleToggleDirectory(rootPath, expandedPaths.has(rootPath))
               }
@@ -196,7 +200,7 @@ function FileBrowser() {
                   <ChevronRight size={14} />
                 )}
               </span>
-              <FolderOpen size={16} className="text-yellow-400" />
+              <FolderOpen size={16} className="text-blue-800" />
               <span className="ml-1 font-semibold">
                 {rootPath.split(/[\\/]/).filter(Boolean).pop()}
               </span>
