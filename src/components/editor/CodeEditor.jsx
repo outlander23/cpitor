@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useEditor } from "../../context/EditorContext";
-
+import HomePage from "../home/home";
+import NoCodeScreen from "./NoCodeScreen";
 export default function CodeEditor() {
   const {
     code,
@@ -90,7 +91,7 @@ export default function CodeEditor() {
             style={{ borderColor: palette.border }}
           />
         ) : (
-          <WelcomeView onOpen={openFileFromLoadscreen} palette={palette} />
+          <HomePage />
         )}
       </div>
     </div>
@@ -203,33 +204,6 @@ function TabBar({ files, activePath, onSelect, onClose, onOpen }) {
             d="M12 4v16m8-8H4"
           />
         </svg>
-      </button>
-    </div>
-  );
-}
-
-function WelcomeView({ onOpen, palette }) {
-  return (
-    <div
-      className="absolute inset-0 flex flex-col items-center justify-center"
-      style={{
-        backgroundColor: palette.editorBackground,
-        color: palette.gutterForeground,
-      }}
-    >
-      <h2 className="text-3xl font-semibold mb-6">
-        Welcome to Your C++ Editor
-      </h2>
-      <button
-        onClick={onOpen}
-        className="px-8 py-3 rounded-lg transition-transform transform hover:scale-105 focus:outline-none"
-        style={{
-          backgroundColor: palette.navbarBackground,
-          color: palette.navbarForeground,
-        }}
-        aria-label="Open C++ File"
-      >
-        Open C++ File
       </button>
     </div>
   );
