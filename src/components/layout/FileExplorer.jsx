@@ -148,7 +148,7 @@ function FileBrowser() {
     });
   }
 
-  if (!showFileExplorer || !isDirOpen) return null;
+  // if (!showFileExplorer || !isDirOpen) return null;
 
   return (
     <div

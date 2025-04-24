@@ -10,7 +10,7 @@ import HomePage from "./components/home/home";
 import Split from "react-split";
 
 function AppContent() {
-  const { showFileExplorer, activeView, settings } = useEditor();
+  const { showFileExplorer, activeView, settings, isDirOpen } = useEditor();
   const palette = settings.themeColors[settings.theme];
 
   const renderMainContent = () => {
