@@ -8,6 +8,8 @@ import {
   Folder,
   FolderOpen,
   File,
+  Plus,
+  FolderPlus,
 } from "lucide-react";
 import { SiCplusplus, SiC } from "react-icons/si";
 
@@ -34,8 +36,16 @@ function FileBrowser() {
   const [rootPath, setRootPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { showFileExplorer, openFile, isDirOpen, openDirPath, settings } =
-    useEditor();
+  const {
+    showFileExplorer,
+    openFile,
+    isDirOpen,
+    openDirPath,
+    settings,
+    setActiveDirectory,
+    activeDirectory,
+    addNewFileFromExplorer,
+  } = useEditor();
 
   const palette = settings.themeColors[settings.theme];
 
@@ -58,6 +68,7 @@ function FileBrowser() {
   async function loadDirectory(dirPath) {
     try {
       const contents = await readDir(dirPath);
+      setActiveDirectory(dirPath);
       const sorted = contents.sort((a, b) => {
         if (a.isDirectory && !b.isDirectory) return -1;
         if (!a.isDirectory && b.isDirectory) return 1;
@@ -79,8 +90,15 @@ function FileBrowser() {
     }
   }
 
+  // console.log("activeDirectory", activeDirectory);
+  const createFile = async () => {
+    addNewFileFromExplorer();
+    setExpandedPaths((prev) => new Set([...prev, activeDirectory]));
+  };
+
   async function handleToggleDirectory(path, expanded) {
     try {
+      setActiveDirectory(path);
       const next = new Set(expandedPaths);
       if (expanded) next.delete(path);
       else {
@@ -104,7 +122,11 @@ function FileBrowser() {
       return (
         <div key={`${fullPath}-${item.name}`}>
           <div
-            className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${bgHover} ${textColor}`}
+            className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${
+              settings.theme === "light"
+                ? "hover:bg-gray-200 text-gray-800"
+                : "hover:bg-gray-700 text-gray-100"
+            }`}
             style={{ paddingLeft: depth * 16 }}
             onClick={() => {
               if (item.isDir) {
@@ -147,10 +169,6 @@ function FileBrowser() {
       );
     });
   }
-  const bgHover =
-    settings.theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-700";
-  const textColor =
-    settings.theme === "light" ? "text-gray-800" : "text-gray-100";
 
   if (!showFileExplorer || !isDirOpen) return null;
 
@@ -166,18 +184,31 @@ function FileBrowser() {
       }}
     >
       <div
+        className="flex items-center justify-between px-4 py-2 border-b"
         style={{
-          padding: "1rem",
           borderBottom: `1px solid ${palette.border}`,
           backgroundColor: palette.headerBackground,
           color: palette.headerForeground,
-          fontSize: "0.75rem",
-          fontWeight: "bold",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
         }}
       >
-        File Explorer
+        <span className="text-xs font-bold uppercase tracking-wider">
+          Explorer
+        </span>
+        <div className="flex items-center space-x-2">
+          <button
+            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+            title="New File"
+            onClick={createFile}
+          >
+            <Plus size={16} />
+          </button>
+          <button
+            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+            title="New Folder"
+          >
+            <FolderPlus size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar px-1 py-2">
@@ -188,7 +219,11 @@ function FileBrowser() {
         ) : (
           <>
             <div
-              className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${bgHover} ${textColor}`}
+              className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${
+                settings.theme === "light"
+                  ? "hover:bg-gray-200 text-gray-800"
+                  : "hover:bg-gray-700 text-gray-100"
+              }`}
               onClick={() =>
                 handleToggleDirectory(rootPath, expandedPaths.has(rootPath))
               }

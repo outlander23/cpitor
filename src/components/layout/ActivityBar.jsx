@@ -22,7 +22,6 @@ export default function ActivityBar() {
     settings,
   } = useEditor();
 
-  // Defensive fallback for theme and palette
   const currentTheme = theme === "dark" || theme === "light" ? theme : "light";
   const palette = settings?.themeColors?.[currentTheme] ||
     settings?.themeColors?.light || {
@@ -45,20 +44,20 @@ export default function ActivityBar() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        width: 48,
+        width: 44,
         height: "100vh",
-        overflow: "hidden",
         backgroundColor: palette.sidebarBackground,
         borderRight: `1px solid ${palette.border}`,
+        padding: "12px 0",
+        boxSizing: "border-box",
       }}
     >
-      {/* Top group */}
+      {/* Top Group */}
       <div
         style={{
-          padding: 12,
           display: "flex",
           flexDirection: "column",
-          gap: 16,
+          gap: 20,
           alignItems: "center",
         }}
       >
@@ -88,16 +87,15 @@ export default function ActivityBar() {
         </ActivityButton>
       </div>
 
-      {/* Middle group */}
+      {/* Middle Group */}
       <div
         style={{
           flex: 1,
-          overflowY: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: 16,
           alignItems: "center",
-          padding: 12,
+          gap: 20,
+          paddingTop: 30,
         }}
       >
         <ActivityButton
@@ -123,11 +121,7 @@ export default function ActivityBar() {
           onClick={toggleTheme}
           palette={palette}
         >
-          {currentTheme === "dark" ? (
-            <FaSun size={20} color={palette.navbarForeground} />
-          ) : (
-            <FaMoon size={20} color={palette.navbarForeground} />
-          )}
+          {currentTheme === "dark" ? <FaSun size={20} /> : <FaMoon size={20} />}
         </ActivityButton>
 
         <ActivityButton
@@ -140,25 +134,35 @@ export default function ActivityBar() {
         </ActivityButton>
       </div>
 
-      {/* Bottom group (empty for now) */}
-      <div style={{ padding: 12 }} />
+      {/* Bottom Padding */}
+      <div style={{ height: 20 }} />
     </div>
   );
 }
 
 function ActivityButton({ title, active = false, onClick, children, palette }) {
   const baseStyle = {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
+    borderRadius: "12px",
+    backgroundColor: active ? palette.lineHighlight : "transparent",
+    color: active ? palette.editorForeground : palette.sidebarForeground,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 6,
-    transition: "background-color 0.15s, color 0.15s",
+    boxShadow: active ? `inset 2px 0 0 ${palette.navbarBackground}` : "none",
     cursor: "pointer",
-    backgroundColor: active ? palette.lineHighlight : "transparent",
-    color: active ? palette.editorForeground : palette.sidebarForeground,
-    borderLeft: active ? `2px solid ${palette.navbarBackground}` : "none",
+    transition: "all 0.2s ease-in-out",
+    outline: "none",
+    border: "none",
+  };
+
+  const hoverStyle = {
+    ...baseStyle,
+    ":hover": {
+      backgroundColor: palette.lineHighlight,
+      transform: "scale(1.05)",
+    },
   };
 
   return (
@@ -167,7 +171,6 @@ function ActivityButton({ title, active = false, onClick, children, palette }) {
       onClick={onClick}
       style={baseStyle}
       aria-pressed={active}
-      tabIndex={0}
     >
       {children}
       <span className="sr-only">{title}</span>

@@ -41,14 +41,12 @@ export default function Terminal() {
       className={`flex flex-col h-full ${terminalBg} border-t ${terminalHeaderBorder} shadow-lg`}
     >
       {/* Terminal Header */}
-      {/* <div
+      <div
         className={`flex items-center justify-between px-1 py-1 ${terminalHeaderBg} border-b ${terminalHeaderBorder}`}
       >
         <div className="flex items-center space-x-2">
           <FaTerminal className={terminalIcon} />
-          <span className={`text-sm font-semibold ${terminalTitle}`}>
-            TERMINAL
-          </span>
+
           {activeFile && (
             <span className={`text-xs ${terminalSubTitle}`}>
               ({activeFile.name || "No file selected"})
@@ -78,7 +76,7 @@ export default function Terminal() {
             <FaTrash />
           </button>
         </div>
-      </div> */}
+      </div>
 
       {/* Terminal Output */}
       <div

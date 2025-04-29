@@ -3,11 +3,11 @@ import { useEditor } from "../../context/EditorContext";
 import { Settings as SettingsIcon, Save, ChevronRight } from "lucide-react";
 
 export default function SettingsPage() {
-  const { settings, updateSettings, toggleTheme } = useEditor();
+  const { settings, updateSettings, toggleTheme, theme } = useEditor();
   // use localSettings for preview; palette comes from localSettings.theme
   const [localSettings, setLocalSettings] = useState(settings);
   const [activeTab, setActiveTab] = useState("general");
-  const palette = settings.themeColors[localSettings.theme];
+  const palette = settings.themeColors[theme];
 
   const handleChange = (key, value) => {
     setLocalSettings((prev) => {
@@ -101,7 +101,7 @@ export default function SettingsPage() {
         {activeTab === "general" && (
           <section className="space-y-6">
             {/* Theme */}
-            <div>
+            {/* <div>
               <h3 className="text-lg font-medium mb-2">Theme</h3>
               <div className="flex space-x-6">
                 {["light", "dark"].map((t) => (
@@ -121,7 +121,7 @@ export default function SettingsPage() {
                   </label>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Auto Save */}
             <div>

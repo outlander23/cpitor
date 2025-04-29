@@ -1,11 +1,11 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { open, save } from "@tauri-apps/plugin-dialog";
+import { open, save, ask } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { defaultSettings } from "../utils/settings";
 import { invoke } from "@tauri-apps/api/core";
-
+import { homeDir } from "@tauri-apps/api/path";
 const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
@@ -27,9 +27,25 @@ export function EditorProvider({ children }) {
   const [currentUser] = useState("outlander23");
   const [currentDateTime] = useState("2025-04-14 19:38:05");
   const [isRunning, setIsRunning] = useState(false);
+  const [activeDirectory, setActiveDirectory] = useState("");
 
   // Derived state
   const activeFile = openFiles.find((f) => f.path === activeFilePath);
+
+  // change view
+  const changeView = (view) => {
+    // setActiveView(view);
+
+    if (view === activeView) {
+      if (view === "editor") {
+        setActiveView("editor");
+      } else {
+        setActiveView("editor");
+      }
+    } else {
+      setActiveView(view);
+    }
+  };
 
   // --- Settings Logic ---
   useEffect(() => {
@@ -187,10 +203,86 @@ export function EditorProvider({ children }) {
   };
 
   // --- Title Bar Logic ---
+  const addNewFile = async () => {
+    try {
+      // 1. Get the user's home directory
+      const home = await homeDir();
+
+      // 2. Show the Save As dialog, defaulting to "untitled.cpp" in the home dir
+      const defaultName = "untitled.cpp";
+      const savePath = await save({
+        defaultPath: `${home}/${defaultName}`,
+        filters: [{ name: "C++ File", extensions: ["cpp", "h"] }],
+      });
+      if (!savePath || typeof savePath !== "string") {
+        // User cancelled
+        return;
+      }
+
+      // 3. Create the empty file (or inject boilerplate)
+      const fileName = savePath.split("/").pop();
+      await writeTextFile(savePath, `// ${fileName}\n\n`);
+
+      // 4. Push it into state & open in editor
+      setOpenFiles((prev) => [
+        ...prev,
+        { path: savePath, name: fileName, content: "" },
+      ]);
+      setActiveFilePath(savePath);
+      setActiveFileName(fileName);
+
+      // 5. Show the explorer & switch to editor view
+      setIsDirOpen(true);
+      setOpenDirPath(savePath.replace(`/${fileName}`, ""));
+      setShowFileExplorer(true);
+
+      setActiveView("editor");
+    } catch (err) {
+      setTerminalOutput(`Error creating new file: ${err}\n`);
+    }
+  };
+
+  const addNewFileFromExplorer = async () => {
+    try {
+      // 1. Get the user's home directory
+      const home = activeDirectory || (await homeDir());
+
+      // 2. Show the Save As dialog, defaulting to "untitled.cpp" in the home dir
+      const defaultName = "untitled.cpp";
+      const savePath = await save({
+        defaultPath: `${home}/${defaultName}`,
+        filters: [{ name: "C++ File", extensions: ["cpp", "h"] }],
+      });
+      if (!savePath || typeof savePath !== "string") {
+        // User cancelled
+        return;
+      }
+
+      // 3. Create the empty file (or inject boilerplate)
+      const fileName = savePath.split("/").pop();
+      await writeTextFile(savePath, `// ${fileName}\n\n`);
+
+      // 4. Push it into state & open in editor
+      setOpenFiles((prev) => [
+        ...prev,
+        { path: savePath, name: fileName, content: "" },
+      ]);
+      setActiveFilePath(savePath);
+      setActiveFileName(fileName);
+
+      // 5. Show the explorer & switch to editor view
+      setIsDirOpen(true);
+      // setOpenDirPath(savePath.replace(`/${fileName}`, ""));
+      setShowFileExplorer(true);
+
+      setActiveView("editor");
+    } catch (err) {
+      setTerminalOutput(`Error creating new file: ${err}\n`);
+    }
+  };
+
   const handleNewFile = () => {
-    setOpenFiles([]);
-    setActiveFilePath("");
-    setActiveFileName(null);
+    addNewFile();
   };
 
   const handleOpenFile = async () => {
@@ -297,7 +389,7 @@ export function EditorProvider({ children }) {
   const value = {
     // View and UI
     activeView,
-    changeView: setActiveView,
+    changeView,
     theme,
     toggleTheme,
     showFileExplorer,
@@ -345,6 +437,9 @@ export function EditorProvider({ children }) {
     setIsDirOpen,
     openDirPath,
     setOpenDirPath,
+    setActiveDirectory,
+    activeDirectory,
+    addNewFileFromExplorer,
   };
 
   return (
