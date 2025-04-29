@@ -1,5 +1,4 @@
 import React from "react";
-import "tailwindcss/tailwind.css";
 import logo from "../../assets/logo.png";
 import { useEditor } from "../../context/EditorContext";
 

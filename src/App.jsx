@@ -7,82 +7,118 @@ import Terminal from "./components/layout/Terminal";
 import InputOutputPanel from "./components/editor/InputOutputPanel";
 import SettingsPage from "./components/settings/settings";
 import HomePage from "./components/home/home";
-import Split from "react-split";
 import NoCodeScreen from "./components/editor/NoCodeScreen";
 
+// Import Resizable UI
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 function AppContent() {
   const { showFileExplorer, activeView, settings, openFiles, isDirOpen } =
     useEditor();
   const palette = settings.themeColors[settings.theme];
 
-  const renderMainContent = () => {
-    if (activeView === "home") {
-      return <HomePage />;
-    }
-    if (activeView === "settings") {
-      return <SettingsPage />;
-    }
-    if (activeView === "editor") {
-      return (
-        <>
-          {openFiles.length === 0 && (
-            <Split
-              className="flex h-full"
-              sizes={showFileExplorer && isDirOpen ? [20, 80] : [0, 100]}
-              minSize={showFileExplorer && isDirOpen ? [150, 300] : [0, 300]} // Correct usage as you requested
-              gutterSize={4}
-              direction="horizontal"
-              snapOffset={30}
-            >
-              {showFileExplorer ? (
-                <div className="overflow-auto">
-                  <FileExplorer />
-                </div>
-              ) : (
-                <div />
-              )}
-              <NoCodeScreen />
-            </Split>
-          )}
+  const renderResizableHandle = () => (
+    <ResizableHandle
+      className="transition-colors duration-150"
+      style={{
+        backgroundColor: palette.border,
+        width: "1px",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = palette.borderHover;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = palette.border;
+      }}
+    />
+  );
 
-          {openFiles.length > 0 && (
-            <Split
-              className="flex h-full"
-              sizes={showFileExplorer ? [20, 60, 20] : [0, 80, 20]} // Adjust sizes based on FileExplorer visibility
-              minSize={showFileExplorer ? [150, 300, 200] : [0, 300, 200]} // Allow FileExplorer to collapse
-              gutterSize={4}
-              direction="horizontal"
-              snapOffset={30} // Snap FileExplorer closed if dragged near 0
-            >
-              {showFileExplorer ? (
-                <div className="overflow-auto">
+  const renderMainContent = () => {
+    if (activeView === "home") return <HomePage />;
+    if (activeView === "settings") return <SettingsPage />;
+
+    if (activeView === "editor") {
+      // No files open: show FileExplorer + NoCodeScreen
+      if (openFiles.length === 0) {
+        return (
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="flex h-full w-full"
+          >
+            {showFileExplorer && isDirOpen && (
+              <>
+                <ResizablePanel
+                  defaultSize={20}
+                  minSize={12}
+                  maxSize={30}
+                  className="overflow-auto"
+                  style={{ borderRight: `1px solid ${palette.border}` }}
+                >
                   <FileExplorer />
-                </div>
-              ) : (
-                <div /> // Empty div to maintain Split structure
-              )}
-              <Split
-                className="flex flex-col h-full"
-                sizes={[85, 15]}
-                minSize={[200, 100]}
-                gutterSize={4}
-                direction="vertical"
+                </ResizablePanel>
+                {renderResizableHandle()}
+              </>
+            )}
+            <ResizablePanel className="overflow-auto flex-1">
+              <NoCodeScreen />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        );
+      }
+
+      // Files open: FileExplorer | Editor/Terminal | I/O Panel
+      return (
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="flex h-full w-full"
+        >
+          {showFileExplorer && isDirOpen && (
+            <>
+              <ResizablePanel
+                defaultSize={20}
+                minSize={12}
+                maxSize={30}
+                className="overflow-auto"
+                style={{ borderRight: `1px solid ${palette.border}` }}
               >
-                <div className="overflow-auto">
-                  <CodeEditor />
-                </div>
-                <div className="overflow-auto border-t border-gray-700">
-                  <Terminal />
-                </div>
-              </Split>
-              <div className="overflow-auto border-l border-gray-700">
-                <InputOutputPanel />
-              </div>
-            </Split>
+                <FileExplorer />
+              </ResizablePanel>
+              {renderResizableHandle()}
+            </>
           )}
-        </>
+          <ResizablePanel defaultSize={60} minSize={30}>
+            <ResizablePanelGroup
+              direction="vertical"
+              className="flex flex-1 h-full"
+            >
+              <ResizablePanel
+                defaultSize={85}
+                minSize={20}
+                style={{ borderBottom: `1px solid ${palette.border}` }}
+              >
+                <CodeEditor />
+              </ResizablePanel>
+              {renderResizableHandle()}
+              <ResizablePanel defaultSize={15} minSize={10}>
+                <Terminal />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+          {renderResizableHandle()}
+          <ResizablePanel
+            defaultSize={20}
+            minSize={10}
+            style={{ borderLeft: `1px solid ${palette.border}` }}
+          >
+            <InputOutputPanel />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       );
     }
+
     return <HomePage />;
   };
 
@@ -95,7 +131,6 @@ function AppContent() {
       }}
     >
       <TitleBar />
-
       <div className="flex flex-1 overflow-hidden">
         <ActivityBar />
         <div className="flex-1 overflow-hidden">{renderMainContent()}</div>

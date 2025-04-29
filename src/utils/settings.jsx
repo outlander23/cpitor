@@ -16,8 +16,10 @@ export const defaultSettings = {
       terminalForeground: "#000000",
       ioPanelBackground: "#fafbfc",
       ioPanelForeground: "#222222",
+      borderHover: "#aaaaaa",
     },
     dark: {
+      borderHover: "#4b4b4b",
       editorBackground: "#1e1e1e",
       editorForeground: "#d4d4d4",
       gutterBackground: "#21232b",
