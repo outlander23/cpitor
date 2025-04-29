@@ -16,7 +16,6 @@ const HomePage = () => {
       navbarForeground: "#333333",
       lineHighlight: "#f0f0f0",
     };
-  console.log("home", palette);
   const styles = {
     backgroundColor: palette.sidebarBackground,
     color: palette.editorForeground,

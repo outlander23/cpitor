@@ -7,13 +7,12 @@ const NoCodeScreen = () => {
   const { settings, theme } = useEditor();
   const colors = settings.themeColors[theme] || settings.themeColors.dark;
 
-  // Dynamic logo filter for theme
   const logoFilter =
     theme === "light" ? "brightness(0.3) contrast(1.2)" : "brightness(1)";
 
   return (
     <div
-      className="w-screen h-screen flex flex-col items-center justify-center transition-colors duration-300 px-4"
+      className="w-screen h-screen flex flex-col items-center justify-center transition-colors duration-100 px-4"
       style={{ backgroundColor: colors.editorBackground }}
     >
       <img

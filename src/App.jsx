@@ -11,7 +11,8 @@ import Split from "react-split";
 import NoCodeScreen from "./components/editor/NoCodeScreen";
 
 function AppContent() {
-  const { showFileExplorer, activeView, settings, openFiles } = useEditor();
+  const { showFileExplorer, activeView, settings, openFiles, isDirOpen } =
+    useEditor();
   const palette = settings.themeColors[settings.theme];
 
   const renderMainContent = () => {
@@ -27,8 +28,8 @@ function AppContent() {
           {openFiles.length === 0 && (
             <Split
               className="flex h-full"
-              sizes={showFileExplorer ? [20, 60] : [0, 80]}
-              minSize={showFileExplorer ? [150, 300] : [0, 300]} // Correct usage as you requested
+              sizes={showFileExplorer && isDirOpen ? [20, 80] : [0, 100]}
+              minSize={showFileExplorer && isDirOpen ? [150, 300] : [0, 300]} // Correct usage as you requested
               gutterSize={4}
               direction="horizontal"
               snapOffset={30}

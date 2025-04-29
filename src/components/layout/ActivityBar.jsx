@@ -35,8 +35,6 @@ export default function ActivityBar() {
       lineHighlight: "#f0f0f0",
     };
 
-  console.log("activity", palette);
-
   const goHome = () => changeView("home");
   const openSettings = () => changeView("settings");
   const openEditor = () => changeView("editor");

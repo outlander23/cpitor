@@ -6,14 +6,13 @@ import { invoke } from "@tauri-apps/api/core";
 export default function Terminal() {
   const {
     terminalOutput,
-    updateTerminalOutput,
     activeFile,
-    inputContent,
-    setOutputContent,
-    settings,
+    theme,
+    compileAndRun,
+    isRunning,
+    clearTerminal,
   } = useEditor();
 
-  const [isRunning, setIsRunning] = useState(false);
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -27,46 +26,6 @@ export default function Terminal() {
     inputRef.current?.focus();
   }, []);
 
-  const compileAndRun = async () => {
-    if (!activeFile || !activeFile.path.endsWith(".cpp")) {
-      updateTerminalOutput(
-        "Error: No C++ file selected or invalid file type\n"
-      );
-      return;
-    }
-
-    setIsRunning(true);
-    updateTerminalOutput(""); // 🔄 Clear previous output
-    setOutputContent(""); // 🔄 Clear output content
-    console.log("Compiling and running:", settings);
-    try {
-      const response = await invoke("compile_and_run_cpp", {
-        filePath: activeFile.path,
-        input: inputContent,
-        cppenv: settings.cppFlags,
-        maxruntime: settings.maxRuntime * 1,
-      });
-
-      console.log("Response:", response);
-      if (response.success) {
-        updateTerminalOutput(`Compile and run successful\n`);
-        setOutputContent(response.output);
-      } else {
-        updateTerminalOutput(` Error: ${response.output}\n`);
-        setOutputContent("");
-      }
-    } catch (error) {
-      updateTerminalOutput(` Unexpected error\n${error}`);
-    } finally {
-      setIsRunning(false);
-    }
-  };
-  const clearTerminal = () => {
-    updateTerminalOutput(() => "");
-    setOutputContent("");
-  };
-  const theme = settings.theme;
-
   // set theme colors
   const terminalBg = theme === "dark" ? "bg-[#1e1e1e]" : "bg-[#f9f9f9]";
   const terminalText = theme === "dark" ? "text-gray-200" : "text-gray-800";
@@ -76,6 +35,7 @@ export default function Terminal() {
   const terminalIcon = theme === "dark" ? "text-gray-400" : "text-gray-700";
   const terminalTitle = theme === "dark" ? "text-gray-200" : "text-gray-800";
   const terminalSubTitle = theme === "dark" ? "text-gray-400" : "text-gray-500";
+
   return (
     <div
       className={`flex flex-col h-full ${terminalBg} border-t ${terminalHeaderBorder} shadow-lg`}

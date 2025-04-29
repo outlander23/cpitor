@@ -1,74 +1,52 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
-import { open } from "@tauri-apps/plugin-dialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { defaultSettings } from "../utils/settings";
+import { invoke } from "@tauri-apps/api/core";
 
 const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
+  // --- State Variables ---
   const [activeView, setActiveView] = useState("home");
-
-  // --- Settings ---
   const [settings, setSettings] = useState(defaultSettings);
   const [store, setStore] = useState(null);
   const [hasSettingsLoaded, setHasSettingsLoaded] = useState(false);
-
-  // --- Editor Files ---
   const [openFiles, setOpenFiles] = useState([]);
   const [activeFilePath, setActiveFilePath] = useState("");
   const [activeFileName, setActiveFileName] = useState("");
-
-  // --- Editor Appearance ---
   const [theme, setTheme] = useState("dark");
   const [showFileExplorer, setShowFileExplorer] = useState(true);
-
-  // --- Directory State ---
   const [isDirOpen, setIsDirOpen] = useState(false);
   const [openDirPath, setOpenDirPath] = useState("");
-
-  // --- IO Content ---
   const [inputContent, setInputContent] = useState("");
   const [outputContent, setOutputContent] = useState("");
   const [terminalOutput, setTerminalOutput] = useState("");
-
-  // --- Metadata ---
   const [currentUser] = useState("outlander23");
   const [currentDateTime] = useState("2025-04-14 19:38:05");
+  const [isRunning, setIsRunning] = useState(false);
 
-  // --- Active File Reference ---
+  // Derived state
   const activeFile = openFiles.find((f) => f.path === activeFilePath);
 
-  // --------------------------
-  // Settings Logic
-  // --------------------------
+  // --- Settings Logic ---
   useEffect(() => {
     async function initStore() {
       try {
         const s = await load("settings.json", { autoSave: true });
         setStore(s);
-
         const stored = (await s.get("settings")) || {};
         const combined = { ...defaultSettings, ...stored };
         setSettings(combined);
         setHasSettingsLoaded(true);
-
-        if (combined.theme === "dark") {
-          // theme = "dark";
-          setTheme("dark");
-        } else if (combined.theme === "light") {
-          // theme = "light";
-          setTheme("light");
-        }
-
-        console.log("Store initialized:", combined);
+        setTheme(combined.theme === "light" ? "light" : "dark");
       } catch (err) {
-        console.error("Failed to load settings:", err);
         setSettings(defaultSettings);
         setHasSettingsLoaded(true);
       }
     }
-
     initStore();
   }, []);
 
@@ -80,17 +58,8 @@ export function EditorProvider({ children }) {
       await store.save();
       setSettings(updated);
       setHasSettingsLoaded(true);
-      if (newSettings.theme == "dark") {
-        // theme = "dark";
-        setTheme("dark");
-      } else if (newSettings.theme == "light") {
-        // theme = "light";
-        setTheme("light");
-      }
-      console.log("Settings updated:", updated);
-    } catch (err) {
-      console.error("Failed to update settings:", err);
-    }
+      setTheme(updated.theme === "light" ? "light" : "dark");
+    } catch (err) {}
   };
 
   const toggleTheme = () => {
@@ -102,9 +71,7 @@ export function EditorProvider({ children }) {
   const getSetting = (key) =>
     settings[key] !== undefined ? settings[key] : defaultSettings[key];
 
-  // --------------------------
-  // File Logic
-  // --------------------------
+  // --- File Handling Logic ---
   const openFile = async (path, name) => {
     const exists = openFiles.find((f) => f.path === path);
     if (exists) {
@@ -117,11 +84,10 @@ export function EditorProvider({ children }) {
       setActiveFilePath(path);
       setActiveFileName(name);
     } catch (err) {
-      console.error("Failed to open file:", err);
+      setTerminalOutput(`Error opening file: ${err}\n`);
     }
   };
 
-  // New: open file from load screen
   const openFileFromLoadscreen = async () => {
     try {
       const selected = await open({
@@ -130,7 +96,7 @@ export function EditorProvider({ children }) {
       });
       if (selected && typeof selected === "string") {
         const parentPath = selected.substring(0, selected.lastIndexOf("/"));
-        openFile(selected, selected.split("/").pop());
+        await openFile(selected, selected.split("/").pop());
         setActiveFilePath(selected);
         setIsDirOpen(true);
         setOpenDirPath(parentPath);
@@ -138,7 +104,7 @@ export function EditorProvider({ children }) {
         setActiveView("editor");
       }
     } catch (err) {
-      console.error("Failed to load file via dialog:", err);
+      setTerminalOutput(`Error loading file: ${err}\n`);
     }
   };
 
@@ -152,11 +118,14 @@ export function EditorProvider({ children }) {
 
   const saveFile = async () => {
     const file = openFiles.find((f) => f.path === activeFilePath);
-    if (!file) return;
+    if (!file) {
+      setTerminalOutput("Error: No active file to save\n");
+      return;
+    }
     try {
       await writeTextFile(file.path, file.content);
     } catch (err) {
-      console.error("Error saving file:", err);
+      throw err; // Re-throw to handle in compileAndRun
     }
   };
 
@@ -168,62 +137,214 @@ export function EditorProvider({ children }) {
     );
   };
 
-  const changeView = (view) => {
-    setActiveView(view);
+  // --- Compile and Run Logic ---
+  const compileAndRun = async () => {
+    if (isRunning) {
+      setTerminalOutput("Already running. Please wait.\n");
+      return;
+    }
+    if (!activeFile || !activeFile.path.endsWith(".cpp")) {
+      setTerminalOutput("Error: No C++ file selected or invalid file type\n");
+      return;
+    }
+
+    // Save the file first
+    try {
+      await saveFile();
+    } catch (err) {
+      setTerminalOutput(`Error saving file: ${err}\n`);
+      return;
+    }
+
+    setIsRunning(true);
+    setTerminalOutput("");
+    setOutputContent("");
+    try {
+      const response = await invoke("compile_and_run_cpp", {
+        filePath: activeFile.path,
+        input: inputContent,
+        cppenv: settings.cppFlags,
+        maxruntime: settings.maxRuntime * 1,
+      });
+
+      if (response.success) {
+        setTerminalOutput("Compile and run successful\n");
+        setOutputContent(response.output);
+      } else {
+        setTerminalOutput(`Error: ${response.output}\n`);
+        setOutputContent("");
+      }
+    } catch (error) {
+      setTerminalOutput(`Unexpected error: ${error}\n`);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
-  const setActiveFile = (path) => setActiveFilePath(path);
-  const updateTerminalOutput = (out) => setTerminalOutput(out);
-  const toggleFileExplorer = () => setShowFileExplorer((p) => !p);
+  const clearTerminal = () => {
+    setTerminalOutput("");
+    setOutputContent("");
+  };
 
-  // --------------------------
-  // Context Value
-  // --------------------------
+  // --- Title Bar Logic ---
+  const handleNewFile = () => {
+    setOpenFiles([]);
+    setActiveFilePath("");
+    setActiveFileName(null);
+  };
+
+  const handleOpenFile = async () => {
+    try {
+      const path = await open({
+        filters: [{ name: "Code", extensions: ["cpp"] }],
+      });
+      if (path && typeof path === "string") {
+        await openFile(path, path.split("/").pop());
+        setActiveFileName(path);
+      }
+    } catch (err) {
+      setTerminalOutput(`Error opening file: ${err}\n`);
+    }
+  };
+
+  const handleSave = async () => {
+    if (activeFileName) {
+      await saveFile();
+    } else {
+      await handleSaveAs();
+    }
+  };
+
+  const handleSaveAs = async () => {
+    try {
+      const path = await save({
+        filters: [{ name: "Code", extensions: ["txt", "cpp", "js", "ts"] }],
+      });
+      if (path) {
+        await writeTextFile(path, activeFile?.content || "");
+        setActiveFileName(path);
+      }
+    } catch (err) {
+      setTerminalOutput(`Error saving file: ${err}\n`);
+    }
+  };
+
+  const handleExit = async () => {
+    try {
+      await getCurrentWindow().close();
+    } catch (err) {}
+  };
+
+  const handleMinimize = async () => {
+    try {
+      const currentWindow = await getCurrentWindow();
+      await currentWindow.minimize();
+    } catch (err) {}
+  };
+
+  const handleFullscreen = async () => {
+    try {
+      const currentWindow = await getCurrentWindow();
+      const isFullscreen = await currentWindow.isFullscreen();
+      if (isFullscreen) {
+        await currentWindow.unmaximize();
+      } else {
+        await currentWindow.maximize();
+      }
+    } catch (err) {}
+  };
+
+  const handleMenuAction = (label) => {
+    switch (label) {
+      case "New File":
+        handleNewFile();
+        break;
+      case "Open File...":
+        handleOpenFile();
+        break;
+      case "Save":
+        handleSave();
+        break;
+      case "Save As...":
+        handleSaveAs();
+        break;
+      case "Exit":
+        handleExit();
+        break;
+      case "Run Code":
+        compileAndRun();
+        break;
+      case "Clear Terminal":
+        clearTerminal();
+        break;
+      case "Toggle Full Screen":
+        handleFullscreen();
+        break;
+      case "Minimize":
+        handleMinimize();
+        break;
+      case "Zoom In":
+        // TODO: Implement zoom in functionality
+        break;
+      case "Zoom Out":
+        // TODO: Implement zoom out functionality
+        break;
+      default:
+    }
+  };
+
+  // --- Context Value ---
   const value = {
-    // Editor Data
-    code: activeFile?.content || "",
-    handleCodeChange,
+    // View and UI
+    activeView,
+    changeView: setActiveView,
+    theme,
+    toggleTheme,
+    showFileExplorer,
+    toggleFileExplorer: () => setShowFileExplorer((p) => !p),
+    currentUser,
+    currentDateTime,
+
+    // File Handling
     openFiles,
     activeFile,
+    activeFilePath,
     activeFileName,
-    setActiveFile,
+    handleCodeChange,
     openFile,
     openFileFromLoadscreen,
     closeFile,
     saveFile,
+    setActiveFile: setActiveFilePath,
+
+    // Title Bar Actions
+    handleNewFile,
+    handleOpenFile,
+    handleSave,
+    handleSaveAs,
+    handleExit,
+    handleMenuAction,
+
+    // Terminal & Run
+    compileAndRun,
+    terminalOutput,
+    updateTerminalOutput: setTerminalOutput,
+    inputContent,
+    setInputContent,
+    outputContent,
+    isRunning,
+    clearTerminal,
 
     // Settings
     settings,
     updateSettings,
     getSetting,
-    hasSettingsLoaded,
-
-    // UI State
-    theme,
-    setTheme,
-    showFileExplorer,
-    toggleFileExplorer,
-    inputContent,
-    setInputContent,
-    outputContent,
-    setOutputContent,
-    terminalOutput,
-    updateTerminalOutput,
 
     // Directory
     isDirOpen,
     setIsDirOpen,
     openDirPath,
     setOpenDirPath,
-
-    // Meta
-    currentUser,
-    currentDateTime,
-
-    // change view
-    activeView,
-    changeView,
-    toggleTheme,
   };
 
   return (
@@ -231,6 +352,4 @@ export function EditorProvider({ children }) {
   );
 }
 
-export function useEditor() {
-  return useContext(EditorContext);
-}
+export const useEditor = () => useContext(EditorContext);

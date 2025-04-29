@@ -30,6 +30,7 @@
     "shell:allow-spawn",
     "shell:allow-stdin-write",
     "core:window:allow-start-dragging",
+    "core:window:allow-maximize",
     {
       "identifier": "shell:allow-execute",
       "allow": [

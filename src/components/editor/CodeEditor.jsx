@@ -1,11 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { useEditor } from "../../context/EditorContext";
 import HomePage from "../home/home";
-import NoCodeScreen from "./NoCodeScreen";
 export default function CodeEditor() {
   const {
-    code,
     handleCodeChange,
     saveFile,
     openFiles,
@@ -16,22 +14,10 @@ export default function CodeEditor() {
     settings,
   } = useEditor();
 
-  // derive palette & correct monaco theme from settings
+  const code = activeFile ? activeFile.content : "";
   const palette = settings.themeColors[settings.theme];
-  // Monaco’s built‑in light theme is "vs-light" (not "light")
   const monacoTheme = settings.theme === "light" ? "light" : "vs-dark";
 
-  console.log("CodeEditor render", monacoTheme);
-  // Sync editor content with active file
-  useEffect(() => {
-    if (!activeFile) return;
-    const file = openFiles.find((f) => f.path === activeFile.path);
-    if (file && file.content !== code) {
-      handleCodeChange(file.content);
-    }
-  }, [activeFile, openFiles, code, handleCodeChange, settings.theme]);
-
-  // Save file on Ctrl+S / Cmd+S
   useEffect(() => {
     const onKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -100,8 +86,6 @@ export default function CodeEditor() {
 function TabBar({ files, activePath, onSelect, onClose, onOpen }) {
   const { settings } = useEditor();
   const palette = settings.themeColors[settings.theme];
-
-  console.log(palette);
 
   return (
     <div
