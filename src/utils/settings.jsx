@@ -1,39 +1,67 @@
 export const defaultSettings = {
-  theme: "light", // "light" | "dark"
+  theme: "dark", // "light" | "dark"
   themeColors: {
     light: {
       editorBackground: "#ffffff",
-      editorForeground: "#222222",
-      gutterBackground: "#f3f3f3",
-      gutterForeground: "#666666",
-      lineHighlight: "#e7f0fa",
-      border: "#cccccc",
-      sidebarBackground: "#f0f0f5",
-      sidebarForeground: "#222222",
-      navbarBackground: "#e3e6ea",
-      navbarForeground: "#222222",
-      terminalBackground: "#f6f6f6",
-      terminalForeground: "#000000",
-      ioPanelBackground: "#fafbfc",
-      ioPanelForeground: "#222222",
-      borderHover: "#aaaaaa",
+      editorForeground: "#1e1e1e", // Darker for better contrast
+      gutterBackground: "#f5f5f5", // Slightly darker for better visibility
+      gutterForeground: "#5a5a5a", // Darker for better readability
+      lineHighlight: "#e3effc", // Slightly more saturated blue tint
+      border: "#e0e0e0", // Slightly darker for better definition
+      sidebarBackground: "#f3f3f3", // More neutral tone
+      sidebarForeground: "#333333", // Darker for better contrast
+      navbarBackground: "#e7e7e7", // More neutral gray
+      navbarForeground: "#333333", // Darker for better contrast
+      terminalBackground: "#f8f8f8", // Slightly darker for better contrast with text
+      terminalForeground: "#121212", // Near black for maximum readability
+      ioPanelBackground: "#f5f5f5", // Consistent with other backgrounds
+      ioPanelForeground: "#333333", // Darker for better contrast
+      borderHover: "#999999", // Darker for better visibility on hover
+      // Additional colors for syntax highlighting
+      syntaxKeyword: "#0000ff", // Blue for keywords
+      syntaxString: "#a31515", // Red for strings
+      syntaxComment: "#008000", // Green for comments
+      syntaxFunction: "#795e26", // Brown for functions
+      syntaxVariable: "#001080", // Dark blue for variables
+      syntaxNumber: "#098658", // Green for numbers
+      syntaxOperator: "#000000", // Black for operators
+      syntaxType: "#267f99", // Teal for types
+      // Status indicators
+      errorForeground: "#d32f2f", // Red for errors
+      warningForeground: "#e69d00", // Amber for warnings
+      successForeground: "#388e3c", // Green for success
+      infoForeground: "#0288d1", // Blue for info
     },
     dark: {
-      borderHover: "#4b4b4b",
-      editorBackground: "#1e1e1e",
-      editorForeground: "#d4d4d4",
-      gutterBackground: "#21232b",
-      gutterForeground: "#858585",
-      lineHighlight: "#2c2c2c",
-      border: "#3c3c3c",
-      sidebarBackground: "#23242a",
-      sidebarForeground: "#d4d4d4",
-      navbarBackground: "#26272b",
-      navbarForeground: "#fafafa",
-      terminalBackground: "#18191c",
-      terminalForeground: "#fafafa",
-      ioPanelBackground: "#1e1e1e",
-      ioPanelForeground: "#cccccc",
+      editorBackground: "#1e1e1e", // VS Code dark theme background
+      editorForeground: "#d4d4d4", // Standard light gray text
+      gutterBackground: "#1e1e1e", // Match editor background
+      gutterForeground: "#858585", // Medium gray for line numbers
+      lineHighlight: "#2a2d2e", // Slightly lighter than background
+      border: "#3c3c3c", // Medium gray borders
+      sidebarBackground: "#252526", // VS Code sidebar color
+      sidebarForeground: "#cccccc", // Light gray text
+      navbarBackground: "#333333", // Slightly lighter than editor
+      navbarForeground: "#ffffff", // White text for contrast
+      terminalBackground: "#1e1e1e", // Match editor background
+      terminalForeground: "#ffffff", // White text for terminal
+      ioPanelBackground: "#1e1e1e", // Match editor background
+      ioPanelForeground: "#cccccc", // Light gray text
+      borderHover: "#5a5a5a", // Lighter gray for hover states
+      // Additional colors for syntax highlighting
+      syntaxKeyword: "#569cd6", // Blue for keywords
+      syntaxString: "#ce9178", // Orange for strings
+      syntaxComment: "#6a9955", // Green for comments
+      syntaxFunction: "#dcdcaa", // Yellow for functions
+      syntaxVariable: "#9cdcfe", // Light blue for variables
+      syntaxNumber: "#b5cea8", // Light green for numbers
+      syntaxOperator: "#d4d4d4", // Light gray for operators
+      syntaxType: "#4ec9b0", // Teal for types
+      // Status indicators
+      errorForeground: "#f44747", // Red for errors
+      warningForeground: "#ff9e64", // Orange for warnings
+      successForeground: "#6a9955", // Green for success
+      infoForeground: "#569cd6", // Blue for info
     },
   },
   fontSizes: {

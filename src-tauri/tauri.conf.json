@@ -15,7 +15,9 @@
         "title": "cpitor",
         "width": 800,
         "decorations": false,
-        "height": 600
+        "height": 600,
+        "minHeight": 600,
+        "minWidth": 800
       }
     ],
     "security": {

@@ -1,14 +1,16 @@
 import React from "react";
 import {
-  FaHome,
-  FaFolderOpen,
-  FaCog,
-  FaSun,
-  FaMoon,
-  FaBook,
-  FaInfoCircle,
-  FaClock,
-} from "react-icons/fa";
+  FileCode,
+  GitBranch,
+  Search as LucideSearch,
+  Bug,
+  Package,
+  ExpandIcon as Extension,
+  User,
+  Settings as LucideSettings,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { useEditor } from "../../context/EditorContext";
 
 export default function ActivityBar() {
@@ -19,161 +21,119 @@ export default function ActivityBar() {
     activeView,
     theme,
     toggleTheme,
-    settings,
   } = useEditor();
 
-  const currentTheme = theme === "dark" || theme === "light" ? theme : "light";
-  const palette = settings?.themeColors?.[currentTheme] ||
-    settings?.themeColors?.light || {
-      sidebarBackground: "#f5f5f5",
-      border: "#dddddd",
-      editorForeground: "#333333",
-      sidebarForeground: "#333333",
-      navbarBackground: "#eaeaea",
-      navbarForeground: "#333333",
-      lineHighlight: "#f0f0f0",
-    };
+  const isDark = theme === "dark";
 
-  const goHome = () => changeView("home");
-  const openSettings = () => changeView("settings");
-  const openEditor = () => changeView("editor");
+  const hoverBg = isDark
+    ? "dark:bg-dark-bg-tertiary"
+    : "hover:bg-light-bg-tertiary";
+  const hoverText = isDark ? "hover:text-white" : "hover:text-gray-800";
 
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        width: 44,
-        height: "100vh",
-        backgroundColor: palette.sidebarBackground,
-        borderRight: `1px solid ${palette.border}`,
-        padding: "12px 0",
-        boxSizing: "border-box",
-      }}
-    >
-      {/* Top Group */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-          alignItems: "center",
-        }}
-      >
-        <ActivityButton
-          title="Home"
-          active={activeView === "home"}
-          onClick={goHome}
-          palette={palette}
-        >
-          <FaHome size={20} />
-        </ActivityButton>
-
-        <ActivityButton
-          title="Explorer"
-          active={showFileExplorer && activeView === "editor"}
-          onClick={() => {
-            toggleFileExplorer();
-            openEditor();
-          }}
-          palette={palette}
-        >
-          <FaFolderOpen size={20} />
-        </ActivityButton>
-
-        <ActivityButton title="Timer" palette={palette}>
-          <FaClock size={20} />
-        </ActivityButton>
-      </div>
-
-      {/* Middle Group */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 20,
-          paddingTop: 30,
-        }}
-      >
-        <ActivityButton
-          title="Docs"
-          active={activeView === "docs"}
-          onClick={() => changeView("docs")}
-          palette={palette}
-        >
-          <FaBook size={20} />
-        </ActivityButton>
-
-        <ActivityButton
-          title="About"
-          active={activeView === "about"}
-          onClick={() => changeView("about")}
-          palette={palette}
-        >
-          <FaInfoCircle size={20} />
-        </ActivityButton>
-
-        <ActivityButton
-          title="Toggle Theme"
-          onClick={toggleTheme}
-          palette={palette}
-        >
-          {currentTheme === "dark" ? <FaSun size={20} /> : <FaMoon size={20} />}
-        </ActivityButton>
-
-        <ActivityButton
-          title="Settings"
-          active={activeView === "settings"}
-          onClick={openSettings}
-          palette={palette}
-        >
-          <FaCog size={20} />
-        </ActivityButton>
-      </div>
-
-      {/* Bottom Padding */}
-      <div style={{ height: 20 }} />
-    </div>
-  );
-}
-
-function ActivityButton({ title, active = false, onClick, children, palette }) {
-  const baseStyle = {
-    width: 32,
-    height: 32,
-    borderRadius: "12px",
-    backgroundColor: active ? palette.lineHighlight : "transparent",
-    color: active ? palette.editorForeground : palette.sidebarForeground,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: active ? `inset 2px 0 0 ${palette.navbarBackground}` : "none",
-    cursor: "pointer",
-    transition: "all 0.2s ease-in-out",
-    outline: "none",
-    border: "none",
-  };
-
-  const hoverStyle = {
-    ...baseStyle,
-    ":hover": {
-      backgroundColor: palette.lineHighlight,
-      transform: "scale(1.05)",
+  const items = [
+    {
+      icon: <LucideSearch className="h-5 w-5" />,
+      action: () => changeView("search"),
+      active: activeView === "search",
+      label: "Search",
     },
-  };
+    {
+      icon: <FileCode className="h-5 w-5" />,
+      action: () => {
+        toggleFileExplorer();
+        changeView("editor");
+      },
+      active: showFileExplorer && activeView === "editor",
+      label: "Explorer",
+    },
+    {
+      icon: <GitBranch className="h-5 w-5" />,
+      action: () => changeView("sourceControl"),
+      active: activeView === "sourceControl",
+      label: "Source Control",
+    },
+    {
+      icon: <Bug className="h-5 w-5" />,
+      action: () => changeView("debug"),
+      active: activeView === "debug",
+      label: "Run & Debug",
+    },
+    {
+      icon: <Package className="h-5 w-5" />,
+      action: () => changeView("extensions"),
+      active: activeView === "extensions",
+      label: "Extensions",
+    },
+  ];
+
+  const bottom = [
+    {
+      icon: isDark ? (
+        <Sun className="h-5 w-5" />
+      ) : (
+        <Moon className="h-5 w-5 text-gray-800" />
+      ),
+      action: toggleTheme,
+      active: false,
+      label: "Toggle Theme",
+      special: true,
+    },
+    {
+      icon: <User className="h-5 w-5" />,
+      action: () => changeView("account"),
+      active: activeView === "account",
+      label: "Account",
+    },
+    {
+      icon: <LucideSettings className="h-5 w-5" />,
+      action: () => changeView("settings"),
+      active: activeView === "settings",
+      label: "Settings",
+    },
+  ];
 
   return (
-    <button
-      title={title}
-      onClick={onClick}
-      style={baseStyle}
-      aria-pressed={active}
-    >
-      {children}
-      <span className="sr-only">{title}</span>
-    </button>
+    <div className="w-12 bg-light-bg-secondary dark:bg-dark-bg-secondary flex flex-col items-center py-2">
+      <div className="flex flex-col items-center space-y-4 flex-1">
+        {items.map(({ icon, action, active, label }) => (
+          <button
+            key={label}
+            onClick={action}
+            title={label}
+            className={`relative p-2 rounded transition-colors flex items-center justify-center cursor-pointer
+              ${
+                active
+                  ? "text-[#3794ff] dark:text-[#3794ff]"
+                  : `text-gray-500 dark:text-dark-text-secondary ${hoverText}`
+              }
+              ${active ? "bg-transparent" : `${hoverBg}`}`}
+          >
+            {active && (
+              <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#3794ff] rounded-r-sm" />
+            )}
+            {icon}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col items-center space-y-4 mt-auto">
+        {bottom.map(({ icon, action, active, label, special }) => (
+          <button
+            key={label}
+            onClick={action}
+            title={label}
+            className={`p-2 rounded transition-colors flex items-center justify-center coursor-pointer
+              ${
+                active
+                  ? "text-[#3794ff] dark:text-[#3794ff]"
+                  : `text-gray-500 dark:text-dark-text-secondary ${hoverText}`
+              }
+              ${hoverBg}`}
+          >
+            {icon}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

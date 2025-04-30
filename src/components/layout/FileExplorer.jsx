@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { SiCplusplus, SiC } from "react-icons/si";
 
-export const FONT_SIZE = 14;
-export const LINE_HEIGHT = 1.6;
+export const FONT_SIZE = 12;
+export const LINE_HEIGHT = 1.2;
 
 function getFileIcon(filename) {
   const ext = filename.split(".").pop().toLowerCase();
@@ -230,9 +230,9 @@ function FileBrowser() {
             >
               <span className="w-4">
                 {expandedPaths.has(rootPath) ? (
-                  <ChevronDown size={14} />
+                  <ChevronDown size={12} />
                 ) : (
-                  <ChevronRight size={14} />
+                  <ChevronRight size={12} />
                 )}
               </span>
               <FolderOpen size={16} className="text-blue-800" />

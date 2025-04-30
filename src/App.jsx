@@ -90,7 +90,7 @@ function AppContent() {
             {showFileExplorer && isDirOpen && (
               <>
                 <ResizablePanel
-                  defaultSize={20}
+                  defaultSize={12}
                   minSize={12}
                   maxSize={30}
                   className="overflow-auto"
@@ -122,7 +122,7 @@ function AppContent() {
           {showFileExplorer && isDirOpen && (
             <>
               <ResizablePanel
-                defaultSize={20}
+                defaultSize={12}
                 minSize={12}
                 maxSize={30}
                 className="overflow-auto"
