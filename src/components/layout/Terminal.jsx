@@ -94,6 +94,19 @@ export default function Terminal() {
         ))}
         <div className="ml-auto px-2">
           <button
+            onClick={compileAndRun}
+            disabled={isRunning || !activeFile}
+            className={`p-2 rounded-full transition-colors duration-200 ${
+              isRunning || !activeFile
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-green-500 hover:bg-gray-300 hover:text-green-600"
+            }`}
+            title="Run"
+            aria-label="Run"
+          >
+            {isRunning ? <FaSpinner className="animate-spin" /> : <FaPlay />}
+          </button>
+          <button
             onClick={() => setIsExpanded(false)}
             className={`p-1 rounded-sm hover:bg-gray-300 transition-colors ${iconColor}`}
             aria-label="Collapse"
@@ -156,31 +169,6 @@ export default function Terminal() {
       </div>
 
       {/* Footer: run & clear actions (optional) */}
-      <div
-        className={`flex items-center justify-end px-2 py-1 border-t ${headerBorder} ${headerBg}`}
-      >
-        <button
-          onClick={compileAndRun}
-          disabled={isRunning || !activeFile}
-          className={`p-2 rounded-full transition-colors duration-200 ${
-            isRunning || !activeFile
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-green-500 hover:bg-gray-300 hover:text-green-600"
-          }`}
-          title="Run"
-          aria-label="Run"
-        >
-          {isRunning ? <FaSpinner className="animate-spin" /> : <FaPlay />}
-        </button>
-        <button
-          onClick={clearTerminal}
-          className={`p-2 rounded-full ml-1 transition-colors duration-200 ${iconColor} hover:bg-gray-300`}
-          title="Clear"
-          aria-label="Clear"
-        >
-          <FaTrash />
-        </button>
-      </div>
     </div>
   );
 }

@@ -1,13 +1,29 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
 import { useEditor } from "../../context/EditorContext";
-import { Settings as SettingsIcon, Save, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Check, Save } from "lucide-react";
 
 export default function SettingsPage() {
   const { settings, updateSettings, toggleTheme, theme } = useEditor();
   // use localSettings for preview; palette comes from localSettings.theme
   const [localSettings, setLocalSettings] = useState(settings);
-  const [activeTab, setActiveTab] = useState("general");
-  const palette = settings.themeColors[theme];
+  const [activeCategory, setActiveCategory] = useState("commonly-used");
+  const [expandedSections, setExpandedSections] = useState({
+    editor: true,
+    files: false,
+    appearance: false,
+    cpp: false,
+  });
+
+  const palette = localSettings.themeColors[localSettings.theme];
+
+  const toggleSection = (section) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   const handleChange = (key, value) => {
     setLocalSettings((prev) => {
@@ -41,274 +57,606 @@ export default function SettingsPage() {
     updateSettings(localSettings);
   };
 
-  const tabs = [
-    { id: "general", label: "General" },
-    { id: "fontSizes", label: "Font Sizes" },
-    { id: "editor", label: "Editor" },
-    { id: "cpp", label: "C++ Config" },
-  ];
+  const categories = [{ id: "commonly-used", name: "Commonly Used" }];
 
   return (
     <div
-      className="flex h-full overflow-hidden"
+      className="flex flex-1 overflow-hidden"
       style={{
-        backgroundColor: palette.editorBackground,
+        background: palette.editorBackground,
         color: palette.editorForeground,
       }}
     >
-      {/* Sidebar */}
-      <aside
-        className="flex-shrink-0 w-60 p-4"
-        style={{
-          backgroundColor: palette.sidebarBackground,
-          color: palette.sidebarForeground,
-          borderRight: `1px solid ${palette.border}`,
-        }}
-      >
-        <div className="flex items-center mb-6 text-lg font-semibold">
-          <SettingsIcon size={18} className="mr-2" />
-          Settings
-        </div>
-        <nav className="space-y-1">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="flex items-center w-full px-3 py-2 rounded-md transition"
-                style={{
-                  backgroundColor: isActive
-                    ? palette.lineHighlight
-                    : "transparent",
-                  color: isActive
-                    ? palette.editorForeground
-                    : palette.sidebarForeground,
-                }}
-              >
-                <span className="flex-1 text-sm">{tab.label}</span>
-                <ChevronRight size={14} />
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
+      {/* Settings Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <h1 className="text-2xl font-semibold mb-6">
+          {categories.find((c) => c.id === activeCategory)?.name || "Settings"}
+        </h1>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-6 space-y-6">
-        <h2 className="text-2xl font-semibold">Editor Settings</h2>
+        {/* Editor Section */}
+        <div
+          className="mb-4 border rounded-md overflow-hidden"
+          style={{ borderColor: palette.border }}
+        >
+          <div
+            className="flex items-center justify-between p-3 cursor-pointer"
+            style={{ background: palette.sidebarBackground }}
+            onClick={() => toggleSection("editor")}
+          >
+            <div className="flex items-center">
+              <span className="mr-2">📝</span>
+              <span>Editor</span>
+            </div>
+            {expandedSections.editor ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </div>
 
-        {activeTab === "general" && (
-          <section className="space-y-6">
-            {/* Theme */}
-            {/* <div>
-              <h3 className="text-lg font-medium mb-2">Theme</h3>
-              <div className="flex space-x-6">
-                {["light", "dark"].map((t) => (
-                  <label
-                    key={t}
-                    className="inline-flex items-center cursor-pointer"
-                    style={{ color: palette.editorForeground }}
-                  >
-                    <input
-                      type="radio"
-                      name="theme"
-                      value={t}
-                      checked={localSettings.theme === t}
-                      onChange={(e) => handleChange("theme", e.target.value)}
-                    />
-                    <span className="ml-2 capitalize">{t}</span>
-                  </label>
-                ))}
-              </div>
-            </div> */}
-
-            {/* Auto Save */}
-            <div>
-              <h3 className="text-lg font-medium mb-2">Auto Save</h3>
-              <label
-                className="inline-flex items-center cursor-pointer"
-                style={{ color: palette.editorForeground }}
-              >
-                <input
-                  type="checkbox"
-                  checked={localSettings.autoSave}
-                  onChange={(e) => handleChange("autoSave", e.target.checked)}
-                />
-                <span className="ml-2">Enable auto save</span>
-              </label>
-              {localSettings.autoSave && (
-                <div className="mt-2 flex items-center space-x-2">
-                  <label style={{ color: palette.editorForeground }}>
-                    Delay (ms):
-                  </label>
+          {expandedSections.editor && (
+            <div
+              className="p-4 space-y-6"
+              style={{ background: palette.editorBackground }}
+            >
+              {/* Font Size */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div>
+                    <div className="font-medium">Font Size</div>
+                    <div className="text-sm opacity-70">
+                      Controls the font size in pixels.
+                    </div>
+                  </div>
                   <input
                     type="number"
-                    value={localSettings.autoSaveDelay}
+                    value={localSettings.fontSizes.codeEditor}
                     onChange={(e) =>
-                      handleChange("autoSaveDelay", Number(e.target.value))
+                      handleFontSizeChange("codeEditor", e.target.value)
                     }
-                    className="w-24 px-2 py-1 rounded"
+                    className="w-32 px-2 py-1 rounded"
                     style={{
-                      backgroundColor: palette.gutterBackground,
+                      background: palette.gutterBackground,
                       color: palette.editorForeground,
                       border: `1px solid ${palette.border}`,
                     }}
                   />
                 </div>
+              </div>
+
+              {/* Font Family */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div>
+                    <div className="font-medium">Font Family</div>
+                    <div className="text-sm opacity-70">
+                      Controls the font family.
+                    </div>
+                  </div>
+                  <div className="relative w-48">
+                    <input
+                      type="text"
+                      value={localSettings.fontFamily}
+                      onChange={(e) =>
+                        handleChange("fontFamily", e.target.value)
+                      }
+                      className="w-full px-2 py-1 rounded"
+                      style={{
+                        background: palette.gutterBackground,
+                        color: palette.editorForeground,
+                        border: `1px solid ${palette.border}`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Word Wrap */}
+              <div>
+                <div className="flex justify-between mb-1 items-center">
+                  <div>
+                    <div className="font-medium">Word Wrap</div>
+                    <div className="text-sm opacity-70">
+                      Controls how lines should wrap.
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 select-none">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center rounded ${
+                        localSettings.wordWrap
+                          ? "bg-blue-600 border-blue-600"
+                          : ""
+                      }`}
+                      style={{
+                        borderColor: palette.border,
+                      }}
+                      onClick={() =>
+                        handleChange("wordWrap", !localSettings.wordWrap)
+                      }
+                    >
+                      {localSettings.wordWrap && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <span>Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Format On Type */}
+              <div>
+                <div className="flex justify-between mb-1 items-center">
+                  <div>
+                    <div className="font-medium">Format On Type</div>
+                    <div className="text-sm opacity-70">
+                      Format the document while typing.
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 select-none">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center rounded ${
+                        localSettings.formatOnType
+                          ? "bg-blue-600 border-blue-600"
+                          : ""
+                      }`}
+                      style={{
+                        borderColor: palette.border,
+                      }}
+                      onClick={() =>
+                        handleChange(
+                          "formatOnType",
+                          !localSettings.formatOnType
+                        )
+                      }
+                    >
+                      {localSettings.formatOnType && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <span>Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Format On Paste */}
+              <div>
+                <div className="flex justify-between mb-1 items-center">
+                  <div>
+                    <div className="font-medium">Format On Paste</div>
+                    <div className="text-sm opacity-70">
+                      Format pasted content.
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 select-none">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center rounded ${
+                        localSettings.formatOnPaste
+                          ? "bg-blue-600 border-blue-600"
+                          : ""
+                      }`}
+                      style={{
+                        borderColor: palette.border,
+                      }}
+                      onClick={() =>
+                        handleChange(
+                          "formatOnPaste",
+                          !localSettings.formatOnPaste
+                        )
+                      }
+                    >
+                      {localSettings.formatOnPaste && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <span>Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Bracket Pair Colorization */}
+              <div>
+                <div className="flex justify-between mb-1 items-center">
+                  <div>
+                    <div className="font-medium">Bracket Pair Colorization</div>
+                    <div className="text-sm opacity-70">
+                      Colorize matching brackets.
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 select-none">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center rounded ${
+                        localSettings.bracketPairColorization
+                          ? "bg-blue-600 border-blue-600"
+                          : ""
+                      }`}
+                      style={{
+                        borderColor: palette.border,
+                      }}
+                      onClick={() =>
+                        handleChange(
+                          "bracketPairColorization",
+                          !localSettings.bracketPairColorization
+                        )
+                      }
+                    >
+                      {localSettings.bracketPairColorization && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <span>Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Code Folding */}
+              <div>
+                <div className="flex justify-between mb-1 items-center">
+                  <div>
+                    <div className="font-medium">Code Folding</div>
+                    <div className="text-sm opacity-70">
+                      Enable code folding in the editor.
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 select-none">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center rounded ${
+                        localSettings.codeFolding
+                          ? "bg-blue-600 border-blue-600"
+                          : ""
+                      }`}
+                      style={{
+                        borderColor: palette.border,
+                      }}
+                      onClick={() =>
+                        handleChange("codeFolding", !localSettings.codeFolding)
+                      }
+                    >
+                      {localSettings.codeFolding && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <span>Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Minimap */}
+              <div>
+                <div className="flex justify-between mb-1 items-center">
+                  <div>
+                    <div className="font-medium">Minimap</div>
+                    <div className="text-sm opacity-70">
+                      Show minimap navigation preview.
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 select-none">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center rounded ${
+                        localSettings.minimap
+                          ? "bg-blue-600 border-blue-600"
+                          : ""
+                      }`}
+                      style={{
+                        borderColor: palette.border,
+                      }}
+                      onClick={() =>
+                        handleChange("minimap", !localSettings.minimap)
+                      }
+                    >
+                      {localSettings.minimap && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <span>Enabled</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Files Section */}
+        <div
+          className="mb-4 border rounded-md overflow-hidden"
+          style={{ borderColor: palette.border }}
+        >
+          <div
+            className="flex items-center justify-between p-3 cursor-pointer"
+            style={{ background: palette.sidebarBackground }}
+            onClick={() => toggleSection("files")}
+          >
+            <div className="flex items-center">
+              <span className="mr-2">📄</span>
+              <span>Files</span>
+            </div>
+            {expandedSections.files ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </div>
+
+          {expandedSections.files && (
+            <div
+              className="p-4 space-y-6"
+              style={{ background: palette.editorBackground }}
+            >
+              {/* Auto Save */}
+              <div>
+                <div className="flex justify-between mb-1 items-center">
+                  <div>
+                    <div className="font-medium">Auto Save</div>
+                    <div className="text-sm opacity-70">
+                      Controls auto save of editors.
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 select-none">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center rounded ${
+                        localSettings.autoSave
+                          ? "bg-blue-600 border-blue-600"
+                          : ""
+                      }`}
+                      style={{
+                        borderColor: palette.border,
+                      }}
+                      onClick={() =>
+                        handleChange("autoSave", !localSettings.autoSave)
+                      }
+                    >
+                      {localSettings.autoSave && (
+                        <Check className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <span>Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Auto Save Delay */}
+              {localSettings.autoSave && (
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <div>
+                      <div className="font-medium">Auto Save Delay</div>
+                      <div className="text-sm opacity-70">
+                        Controls the delay in ms after which an editor is saved
+                        automatically.
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      value={localSettings.autoSaveDelay}
+                      onChange={(e) =>
+                        handleChange("autoSaveDelay", Number(e.target.value))
+                      }
+                      className="w-32 px-2 py-1 rounded"
+                      style={{
+                        background: palette.gutterBackground,
+                        color: palette.editorForeground,
+                        border: `1px solid ${palette.border}`,
+                      }}
+                    />
+                  </div>
+                </div>
               )}
             </div>
+          )}
+        </div>
 
-            {/* Minimap */}
-            <div>
-              <h3 className="text-lg font-medium mb-2">Minimap</h3>
-              <label
-                className="inline-flex items-center cursor-pointer"
-                style={{ color: palette.editorForeground }}
-              >
-                <input
-                  type="checkbox"
-                  checked={localSettings.minimap}
-                  onChange={(e) => handleChange("minimap", e.target.checked)}
-                />
-                <span className="ml-2">Show minimap</span>
-              </label>
+        {/* Appearance Section */}
+        <div
+          className="mb-4 border rounded-md overflow-hidden"
+          style={{ borderColor: palette.border }}
+        >
+          <div
+            className="flex items-center justify-between p-3 cursor-pointer"
+            style={{ background: palette.sidebarBackground }}
+            onClick={() => toggleSection("appearance")}
+          >
+            <div className="flex items-center">
+              <span className="mr-2">🎨</span>
+              <span>Appearance</span>
             </div>
+            {expandedSections.appearance ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </div>
 
-            {/* Font Family */}
-            <div>
-              <h3 className="text-lg font-medium mb-2">Font Family</h3>
-              <input
-                type="text"
-                value={localSettings.fontFamily}
-                onChange={(e) => handleChange("fontFamily", e.target.value)}
-                className="w-full px-3 py-2 rounded"
-                style={{
-                  backgroundColor: palette.gutterBackground,
-                  color: palette.editorForeground,
-                  border: `1px solid ${palette.border}`,
-                }}
-              />
+          {expandedSections.appearance && (
+            <div
+              className="p-4 space-y-6"
+              style={{ background: palette.editorBackground }}
+            >
+              {/* Theme */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div>
+                    <div className="font-medium">Color Theme</div>
+                    <div className="text-sm opacity-70">
+                      Specifies the color theme used in the workbench.
+                    </div>
+                  </div>
+                  <div className="relative w-32">
+                    <select
+                      className="w-full appearance-none px-2 py-1 pr-8 rounded"
+                      style={{
+                        background: palette.gutterBackground,
+                        color: palette.editorForeground,
+                        border: `1px solid ${palette.border}`,
+                      }}
+                      value={localSettings.theme}
+                      onChange={(e) => handleChange("theme", e.target.value)}
+                    >
+                      <option value="dark">Dark</option>
+                      <option value="light">Light</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Font Sizes */}
+              <div>
+                <div className="font-medium mb-2">Font Sizes</div>
+
+                {/* Navbar Font Size */}
+                <div className="flex justify-between mb-3 pl-4">
+                  <div>
+                    <div className="text-sm">Navbar</div>
+                  </div>
+                  <input
+                    type="number"
+                    value={localSettings.fontSizes.navbar}
+                    onChange={(e) =>
+                      handleFontSizeChange("navbar", e.target.value)
+                    }
+                    className="w-32 px-2 py-1 rounded"
+                    style={{
+                      background: palette.gutterBackground,
+                      color: palette.editorForeground,
+                      border: `1px solid ${palette.border}`,
+                    }}
+                  />
+                </div>
+
+                {/* Browser Font Size */}
+                <div className="flex justify-between mb-3 pl-4">
+                  <div>
+                    <div className="text-sm">File Browser</div>
+                  </div>
+                  <input
+                    type="number"
+                    value={localSettings.fontSizes.browser}
+                    onChange={(e) =>
+                      handleFontSizeChange("browser", e.target.value)
+                    }
+                    className="w-32 px-2 py-1 rounded"
+                    style={{
+                      background: palette.gutterBackground,
+                      color: palette.editorForeground,
+                      border: `1px solid ${palette.border}`,
+                    }}
+                  />
+                </div>
+
+                {/* Terminal Font Size */}
+                <div className="flex justify-between mb-3 pl-4">
+                  <div>
+                    <div className="text-sm">Terminal</div>
+                  </div>
+                  <input
+                    type="number"
+                    value={localSettings.fontSizes.terminal}
+                    onChange={(e) =>
+                      handleFontSizeChange("terminal", e.target.value)
+                    }
+                    className="w-32 px-2 py-1 rounded"
+                    style={{
+                      background: palette.gutterBackground,
+                      color: palette.editorForeground,
+                      border: `1px solid ${palette.border}`,
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-          </section>
-        )}
+          )}
+        </div>
 
-        {activeTab === "fontSizes" && (
-          <section className="space-y-4">
-            <h3 className="text-lg font-medium">Font Sizes</h3>
-            {Object.entries(localSettings.fontSizes).map(([key, size]) => (
-              <div key={key} className="flex items-center space-x-4">
-                <label
-                  className="w-40 capitalize"
-                  style={{ color: palette.editorForeground }}
-                >
-                  {key}:
-                </label>
-                <input
-                  type="number"
-                  value={size}
-                  onChange={(e) => handleFontSizeChange(key, e.target.value)}
-                  className="w-20 px-2 py-1 rounded"
+        {/* C++ Configuration Section */}
+        <div
+          className="mb-4 border rounded-md overflow-hidden"
+          style={{ borderColor: palette.border }}
+        >
+          <div
+            className="flex items-center justify-between p-3 cursor-pointer"
+            style={{ background: palette.sidebarBackground }}
+            onClick={() => toggleSection("cpp")}
+          >
+            <div className="flex items-center">
+              <span className="mr-2">⚙️</span>
+              <span>C++ Configuration</span>
+            </div>
+            {expandedSections.cpp ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </div>
+
+          {expandedSections.cpp && (
+            <div
+              className="p-4 space-y-6"
+              style={{ background: palette.editorBackground }}
+            >
+              {/* Max Runtime */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div>
+                    <div className="font-medium">Max Runtime (s)</div>
+                    <div className="text-sm opacity-70">
+                      Maximum execution time for C++ programs in seconds.
+                    </div>
+                  </div>
+                  <input
+                    type="number"
+                    value={localSettings.maxRuntime}
+                    onChange={(e) =>
+                      handleChange("maxRuntime", Number(e.target.value))
+                    }
+                    className="w-32 px-2 py-1 rounded"
+                    style={{
+                      background: palette.gutterBackground,
+                      color: palette.editorForeground,
+                      border: `1px solid ${palette.border}`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* C++ Flags */}
+              <div>
+                <div className="mb-1">
+                  <div className="font-medium">Environment Flags (JSON)</div>
+                  <div className="text-sm opacity-70">
+                    Configure C++ compilation flags as JSON.
+                  </div>
+                </div>
+                <textarea
+                  value={JSON.stringify(localSettings.cppFlags, null, 2)}
+                  onChange={(e) => handleChange("cppFlags", e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 rounded"
                   style={{
-                    backgroundColor: palette.gutterBackground,
+                    background: palette.gutterBackground,
                     color: palette.editorForeground,
                     border: `1px solid ${palette.border}`,
+                    fontFamily: "monospace",
                   }}
                 />
               </div>
-            ))}
-          </section>
-        )}
-
-        {activeTab === "editor" && (
-          <section className="space-y-4">
-            <h3 className="text-lg font-medium ">Editor Behavior</h3>
-            {[
-              { key: "formatOnType", label: "Format on Type" },
-              { key: "formatOnPaste", label: "Format on Paste" },
-              {
-                key: "bracketPairColorization",
-                label: "Bracket Pair Colorization",
-              },
-              { key: "codeFolding", label: "Code Folding" },
-            ].map(({ key, label }) => (
-              <label
-                key={key}
-                className="inline-flex items-center cursor-pointer space-x-2 p-2 rounded"
-                style={{ color: palette.editorForeground }}
-              >
-                <input
-                  type="checkbox"
-                  checked={localSettings[key]}
-                  onChange={(e) => handleChange(key, e.target.checked)}
-                />
-                <span>{label}</span>
-              </label>
-            ))}
-          </section>
-        )}
-
-        {activeTab === "cpp" && (
-          <section className="space-y-6">
-            <h3 className="text-lg font-medium">C++ Runtime & Flags</h3>
-            <div>
-              <label
-                className="block mb-1"
-                style={{ color: palette.editorForeground }}
-              >
-                Max Runtime (s)
-              </label>
-              <input
-                type="number"
-                value={localSettings.maxRuntime}
-                onChange={(e) =>
-                  handleChange("maxRuntime", Number(e.target.value))
-                }
-                className="w-24 px-2 py-1 rounded"
-                style={{
-                  backgroundColor: palette.gutterBackground,
-                  color: palette.editorForeground,
-                  border: `1px solid ${palette.border}`,
-                }}
-              />
             </div>
-            <div>
-              <label
-                className="block mb-1"
-                style={{ color: palette.editorForeground }}
-              >
-                Environment Flags (JSON)
-              </label>
-              <textarea
-                value={JSON.stringify(localSettings.cppFlags, null, 2)}
-                onChange={(e) => handleChange("cppFlags", e.target.value)}
-                rows={4}
-                className="w-full px-3 py-2 rounded"
-                style={{
-                  backgroundColor: palette.gutterBackground,
-                  color: palette.editorForeground,
-                  border: `1px solid ${palette.border}`,
-                }}
-              />
-            </div>
-          </section>
-        )}
+          )}
+        </div>
 
         {/* Save Button */}
-        <div className="pt-6 border-t" style={{ borderColor: palette.border }}>
+        <div className="mt-8">
           <button
             onClick={handleSave}
-            className="inline-flex items-center px-4 py-2 rounded font-medium transition"
+            className="flex items-center gap-2 px-4 py-2 rounded"
             style={{
               backgroundColor: palette.navbarBackground,
               color: palette.navbarForeground,
             }}
           >
-            <Save size={16} className="mr-2" />
+            <Save className="w-4 h-4" />
             Save Settings
           </button>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

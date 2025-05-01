@@ -5,11 +5,11 @@ import {
   Search as LucideSearch,
   Bug,
   Package,
-  ExpandIcon as Extension,
   User,
   Settings as LucideSettings,
   Sun,
   Moon,
+  BadgeInfo,
 } from "lucide-react";
 import { useEditor } from "../../context/EditorContext";
 
@@ -24,7 +24,6 @@ export default function ActivityBar() {
   } = useEditor();
 
   const isDark = theme === "dark";
-
   const hoverBg = isDark
     ? "dark:bg-dark-bg-tertiary"
     : "hover:bg-light-bg-tertiary";
@@ -79,10 +78,10 @@ export default function ActivityBar() {
       special: true,
     },
     {
-      icon: <User className="h-5 w-5" />,
-      action: () => changeView("account"),
-      active: activeView === "account",
-      label: "Account",
+      icon: <BadgeInfo className="h-5 w-5" />,
+      action: () => changeView("about"),
+      active: activeView === "about",
+      label: "About",
     },
     {
       icon: <LucideSettings className="h-5 w-5" />,
@@ -100,13 +99,16 @@ export default function ActivityBar() {
             key={label}
             onClick={action}
             title={label}
-            className={`relative p-2 rounded transition-colors flex items-center justify-center cursor-pointer
+            className={`
+              relative p-2 rounded transition-colors flex items-center justify-center
               ${
                 active
                   ? "text-[#3794ff] dark:text-[#3794ff]"
                   : `text-gray-500 dark:text-dark-text-secondary ${hoverText}`
               }
-              ${active ? "bg-transparent" : `${hoverBg}`}`}
+              ${active ? "bg-transparent" : hoverBg}
+              cursor-pointer
+            `}
           >
             {active && (
               <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#3794ff] rounded-r-sm" />
@@ -117,18 +119,23 @@ export default function ActivityBar() {
       </div>
 
       <div className="flex flex-col items-center space-y-4 mt-auto">
-        {bottom.map(({ icon, action, active, label, special }) => (
+        {bottom.map(({ icon, action, label }) => (
           <button
             key={label}
             onClick={action}
             title={label}
-            className={`p-2 rounded transition-colors flex items-center justify-center coursor-pointer
+            className={`
+              p-2 rounded transition-colors flex items-center justify-center
               ${
-                active
+                label === "Toggle Theme"
+                  ? "" /* no active indicator */
+                  : activeView === label.toLowerCase()
                   ? "text-[#3794ff] dark:text-[#3794ff]"
                   : `text-gray-500 dark:text-dark-text-secondary ${hoverText}`
               }
-              ${hoverBg}`}
+              ${hoverBg}
+              cursor-pointer
+            `}
           >
             {icon}
           </button>
