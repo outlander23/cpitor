@@ -11,13 +11,15 @@ const NoCodeScreen = () => {
 
   return (
     <div
-      className="w-screen h-screen flex flex-col items-center justify-center transition-colors duration-100 px-4"
-      style={{ backgroundColor: colors.editorBackground }}
+      className="flex items-center justify-center transition-colors duration-100 w-full h-full"
+      style={{
+        backgroundColor: colors.editorBackground,
+      }}
     >
       <img
         src={logo}
         alt="Cptor Editor Logo"
-        className="w-48 sm:w-60 md:w-72 lg:w-80  transition-all duration-300"
+        className="w-48 sm:w-60 md:w-72 lg:w-80 transition-all duration-300"
         style={{ filter: logoFilter }}
       />
     </div>

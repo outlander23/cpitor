@@ -1,11 +1,12 @@
 import React, { useMemo, useCallback, Suspense } from "react";
 import { EditorProvider, useEditor } from "./context/EditorContext";
-import TitleBar from "./components/layout/TitleBar";
+import MenuBar from "./components/layout/MenuBar";
 import ActivityBar from "./components/layout/ActivityBar";
 import FileExplorer from "./components/layout/FileExplorer";
 import CodeEditor from "./components/editor/CodeEditor";
 import Terminal from "./components/layout/Terminal";
 import InputOutputPanel from "./components/editor/InputOutputPanel";
+import TitleBar from "./components/layout/TitleBar";
 import NoCodeScreen from "./components/editor/NoCodeScreen";
 const SettingsPage = React.lazy(() => import("./components/settings/settings"));
 const HomePage = React.lazy(() => import("./components/home/home"));
@@ -28,142 +29,106 @@ function AppContent() {
     useEditor();
   const palette = settings.themeColors[settings.theme];
 
-  const handleStyleHorizontal = useMemo(
-    () => ({ backgroundColor: palette.border }),
-    [palette.border]
-  );
-  const handleStyleVertical = useMemo(
-    () => ({ backgroundColor: palette.border }),
-    [palette.border]
-  );
-
+  // Handles: transparent by default, highlight on hover, thinner to reduce gaps
+  const handleStyle = useMemo(() => ({ backgroundColor: "transparent" }), []);
   const renderResizableHandle = useCallback(
     (direction = "horizontal") => (
       <ResizableHandle
         className={`transition-colors duration-150 z-10 ${
           direction === "horizontal"
-            ? "w-[3px] h-full cursor-col-resize"
-            : "h-[3px] w-full cursor-row-resize"
+            ? "w-[1px] h-full cursor-col-resize"
+            : "h-[1px] w-full cursor-row-resize"
         }`}
-        style={
-          direction === "horizontal"
-            ? handleStyleHorizontal
-            : handleStyleVertical
-        }
+        style={handleStyle}
         onMouseEnter={(e) =>
           (e.currentTarget.style.backgroundColor = palette.borderHover)
         }
         onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor = palette.border)
+          (e.currentTarget.style.backgroundColor = "transparent")
         }
       />
     ),
-    [
-      palette.border,
-      palette.borderHover,
-      handleStyleHorizontal,
-      handleStyleVertical,
-    ]
+    [palette.borderHover, handleStyle]
   );
 
-  const renderMainContent = useCallback(() => {
-    const explorerPane = showFileExplorer && isDirOpen && (
-      <>
+  // Helper: wrap main page content in a horizontal resizable group with a permanent explorer panel
+  const withExplorer = useCallback(
+    (mainPanel) => (
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="flex h-full w-full"
+      >
         <ResizablePanel
-          defaultSize={12}
-          minSize={12}
-          maxSize={30}
+          defaultSize={showFileExplorer && isDirOpen ? 12 : 0}
+          minSize={showFileExplorer && isDirOpen ? 12 : 0}
+          maxSize={showFileExplorer && isDirOpen ? 30 : 0}
           className="overflow-auto"
-          style={{ borderRight: `1px solid ${palette.border}`, minWidth: 0 }}
+          style={{ minWidth: 0 }}
         >
-          <MemoizedFileExplorer />
+          {showFileExplorer && isDirOpen && <MemoizedFileExplorer />}
         </ResizablePanel>
-        {renderResizableHandle("horizontal")}
-      </>
-    );
+        {showFileExplorer && isDirOpen && renderResizableHandle("horizontal")}
+        <ResizablePanel
+          defaultSize={showFileExplorer && isDirOpen ? 88 : 100}
+          minSize={showFileExplorer && isDirOpen ? 40 : 0}
+          className="overflow-auto"
+          style={{ minWidth: 0 }}
+        >
+          {mainPanel}
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    ),
+    [showFileExplorer, isDirOpen, renderResizableHandle]
+  );
 
-    if (activeView === "home") {
+  // Main content logic
+  const renderMainContent = useCallback(() => {
+    // Home/About/Settings views
+    if (activeView === "home")
+      return withExplorer(
+        <Suspense fallback={<div>Loading Home…</div>}>
+          <HomePage />
+        </Suspense>
+      );
+    if (activeView === "about")
+      return withExplorer(
+        <Suspense fallback={<div>Loading About…</div>}>
+          <AboutPage />
+        </Suspense>
+      );
+    if (activeView === "settings")
+      return withExplorer(
+        <Suspense fallback={<div>Loading Settings…</div>}>
+          <SettingsPage />
+        </Suspense>
+      );
+
+    // Editor view, but no files open
+    if (activeView === "editor" && openFiles.length === 0)
+      return withExplorer(<MemoizedNoCodeScreen />);
+
+    // Editor view, with files open
+    if (activeView === "editor")
       return (
         <ResizablePanelGroup
           direction="horizontal"
           className="flex h-full w-full"
         >
-          {explorerPane}
           <ResizablePanel
-            className="overflow-auto flex-1"
+            defaultSize={showFileExplorer && isDirOpen ? 12 : 0}
+            minSize={showFileExplorer && isDirOpen ? 12 : 0}
+            maxSize={showFileExplorer && isDirOpen ? 30 : 0}
+            className="overflow-auto"
             style={{ minWidth: 0 }}
           >
-            <Suspense fallback={<div>Loading Home…</div>}>
-              <HomePage />
-            </Suspense>
+            {showFileExplorer && isDirOpen && <MemoizedFileExplorer />}
           </ResizablePanel>
-        </ResizablePanelGroup>
-      );
-    }
-    if (activeView === "about") {
-      return (
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="flex h-full w-full"
-        >
-          {explorerPane}
+          {showFileExplorer && isDirOpen && renderResizableHandle("horizontal")}
           <ResizablePanel
-            className="overflow-auto flex-1"
+            defaultSize={showFileExplorer && isDirOpen ? 68 : 80}
+            minSize={40}
             style={{ minWidth: 0 }}
           >
-            <Suspense fallback={<div>Loading Home…</div>}>
-              <AboutPage />
-            </Suspense>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      );
-    }
-
-    if (activeView === "settings") {
-      return (
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="flex h-full w-full"
-        >
-          {explorerPane}
-          <ResizablePanel
-            className="overflow-auto flex-1"
-            style={{ minWidth: 0 }}
-          >
-            <Suspense fallback={<div>Loading Settings…</div>}>
-              <SettingsPage />
-            </Suspense>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      );
-    }
-
-    if (activeView === "editor") {
-      if (openFiles.length === 0) {
-        return (
-          <ResizablePanelGroup
-            direction="horizontal"
-            className="flex h-full w-full"
-          >
-            {explorerPane}
-            <ResizablePanel
-              className="overflow-auto flex-1"
-              style={{ minWidth: 0 }}
-            >
-              <MemoizedNoCodeScreen />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        );
-      }
-
-      return (
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="flex h-full w-full"
-        >
-          {explorerPane}
-
-          <ResizablePanel defaultSize={60} minSize={30} style={{ minWidth: 0 }}>
             <ResizablePanelGroup
               direction="vertical"
               className="flex h-full w-full"
@@ -171,10 +136,7 @@ function AppContent() {
               <ResizablePanel
                 defaultSize={85}
                 minSize={20}
-                style={{
-                  borderBottom: `1px solid ${palette.border}`,
-                  minHeight: 0,
-                }}
+                style={{ minHeight: 0 }}
               >
                 <MemoizedCodeEditor />
               </ResizablePanel>
@@ -188,21 +150,18 @@ function AppContent() {
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
-
           {renderResizableHandle("horizontal")}
-
           <ResizablePanel
-            defaultSize={20}
-            minSize={10}
-            style={{ borderLeft: `1px solid ${palette.border}`, minWidth: 0 }}
+            defaultSize={showFileExplorer && isDirOpen ? 20 : 20}
+            minSize={15}
+            maxSize={40}
+            style={{ minWidth: 0 }}
           >
             <MemoizedInputOutputPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
       );
-    }
-
-    // fallback to Home
+    // Fallback
     return (
       <div className="h-full w-full">
         <Suspense fallback={<div>Loading Home…</div>}>
@@ -215,9 +174,8 @@ function AppContent() {
     showFileExplorer,
     isDirOpen,
     openFiles.length,
-    palette.border,
-    palette.borderHover,
     renderResizableHandle,
+    withExplorer,
   ]);
 
   const containerStyle = useMemo(
@@ -233,7 +191,7 @@ function AppContent() {
       className="h-screen w-screen font-sans flex flex-col overflow-hidden"
       style={containerStyle}
     >
-      <TitleBar />
+      <MenuBar />
       <div className="flex flex-1 overflow-hidden">
         <ActivityBar />
         <div className="flex-1 overflow-hidden">{renderMainContent()}</div>

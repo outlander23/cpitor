@@ -67,50 +67,46 @@ export default function CodeEditor() {
 
       {/* 3) Editor or HomePage */}
       <div className="flex-1 relative">
-        {activeFile ? (
-          <Editor
-            language={activeFile.language || "cpp"}
-            value={code}
-            onChange={handleCodeChange}
-            theme={monacoTheme}
-            options={{
-              automaticLayout: true,
-              fontSize: settings.fontSizes.codeEditor,
-              fontFamily: settings.fontFamily,
-              minimap: { enabled: settings.minimap },
-              scrollBeyondLastLine: false,
-              lineNumbers: "on",
-              renderLineHighlight: "all",
-              wordWrap: "on",
-              cursorBlinking: "smooth",
-              padding: { top: 10, bottom: 8 },
-              scrollbar: { vertical: "auto", horizontal: "auto" },
-              roundedSelection: true,
-              cursorStyle: "line",
-              formatOnType: settings.formatOnType,
-              formatOnPaste: settings.formatOnPaste,
-              bracketPairColorization: {
-                enabled: settings.bracketPairColorization,
-              },
-              folding: settings.codeFolding,
-              smoothScrolling: true,
-              mouseWheelZoom: true,
-              renderWhitespace: "selection",
-              tabSize: settings.tabSize || 4,
-              renderIndentGuides: true,
-              highlightActiveIndentGuide: true,
-              matchBrackets: "always",
-              renderFinalNewline: true,
-              dragAndDrop: true,
-            }}
-            style={{
-              borderTop: `1px solid ${palette.border}`,
-              background: palette.editorBackground,
-            }}
-          />
-        ) : (
-          <HomePage />
-        )}
+        <Editor
+          language={activeFile.language || "cpp"}
+          value={code}
+          onChange={handleCodeChange}
+          theme={monacoTheme}
+          options={{
+            automaticLayout: true,
+            fontSize: settings.fontSizes.codeEditor,
+            fontFamily: settings.fontFamily,
+            minimap: { enabled: settings.minimap },
+            scrollBeyondLastLine: false,
+            lineNumbers: "on",
+            renderLineHighlight: "all",
+            wordWrap: "on",
+            cursorBlinking: "smooth",
+            padding: { top: 10, bottom: 8 },
+            scrollbar: { vertical: "auto", horizontal: "auto" },
+            roundedSelection: true,
+            cursorStyle: "line",
+            formatOnType: settings.formatOnType,
+            formatOnPaste: settings.formatOnPaste,
+            bracketPairColorization: {
+              enabled: settings.bracketPairColorization,
+            },
+            folding: settings.codeFolding,
+            smoothScrolling: true,
+            mouseWheelZoom: true,
+            renderWhitespace: "selection",
+            tabSize: settings.tabSize || 4,
+            renderIndentGuides: true,
+            highlightActiveIndentGuide: true,
+            matchBrackets: "always",
+            renderFinalNewline: true,
+            dragAndDrop: true,
+          }}
+          style={{
+            borderTop: `1px solid ${palette.border}`,
+            background: palette.editorBackground,
+          }}
+        />
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ export function EditorProvider({ children }) {
   const [currentDateTime] = useState("2025-04-14 19:38:05");
   const [isRunning, setIsRunning] = useState(false);
   const [activeDirectory, setActiveDirectory] = useState("");
+  const [recentDirs, setRecentDirs] = useState([]);
 
   // Derived state
   const activeFile = openFiles.find((f) => f.path === activeFilePath);
@@ -47,6 +48,34 @@ export function EditorProvider({ children }) {
     }
   };
 
+  const addRecentFolder = async (folderPath) => {
+    let recents = settings.recentOpenedFolders || [];
+    recents = recents.filter((item) => item !== folderPath);
+    recents.unshift(folderPath);
+    recents = recents.slice(0, 3);
+    await updateSettings({ recentOpenedFolders: recents });
+  };
+  const openFolder = async (dir) => {
+    try {
+      let selected = dir;
+      if (!selected) {
+        selected = await open({
+          directory: true,
+          multiple: false,
+        });
+      }
+      if (selected && typeof selected === "string") {
+        setOpenDirPath(selected);
+        setIsDirOpen(true);
+        setShowFileExplorer(true);
+        setActiveView("editor");
+        setActiveDirectory(selected);
+        await addRecentFolder(selected);
+      }
+    } catch (err) {
+      setTerminalOutput(`Error opening folder: ${err}\n`);
+    }
+  };
   // --- Settings Logic ---
   useEffect(() => {
     async function initStore() {
@@ -440,6 +469,9 @@ export function EditorProvider({ children }) {
     setActiveDirectory,
     activeDirectory,
     addNewFileFromExplorer,
+    openFolder,
+    addNewFile,
+    recentDirs,
   };
 
   return (

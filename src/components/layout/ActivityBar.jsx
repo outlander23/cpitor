@@ -10,6 +10,7 @@ import {
   Sun,
   Moon,
   BadgeInfo,
+  Home,
 } from "lucide-react";
 import { useEditor } from "../../context/EditorContext";
 
@@ -31,10 +32,10 @@ export default function ActivityBar() {
 
   const items = [
     {
-      icon: <LucideSearch className="h-5 w-5" />,
-      action: () => changeView("search"),
-      active: activeView === "search",
-      label: "Search",
+      icon: <Home className="h-5 w-5" />,
+      action: () => changeView("home"),
+      active: activeView === "home",
+      label: "home",
     },
     {
       icon: <FileCode className="h-5 w-5" />,

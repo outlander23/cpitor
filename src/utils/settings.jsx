@@ -81,4 +81,5 @@ export const defaultSettings = {
   codeFolding: true,
   maxRuntime: 2,
   cppFlags: "ONPC",
+  recentOpenedFolders: [], // max 3
 };

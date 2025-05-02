@@ -63,7 +63,7 @@ function FileBrowser() {
       }
     }
     init();
-  }, [isDirOpen]);
+  }, [isDirOpen, activeDirectory]);
 
   async function loadDirectory(dirPath) {
     try {
