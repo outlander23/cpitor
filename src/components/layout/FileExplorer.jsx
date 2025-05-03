@@ -45,6 +45,7 @@ function FileBrowser() {
     setActiveDirectory,
     activeDirectory,
     addNewFileFromExplorer,
+    currentOpenDir,
   } = useEditor();
 
   const palette = settings.themeColors[settings.theme];
@@ -63,7 +64,7 @@ function FileBrowser() {
       }
     }
     init();
-  }, [isDirOpen, activeDirectory]);
+  }, [isDirOpen, currentOpenDir]);
 
   async function loadDirectory(dirPath) {
     try {

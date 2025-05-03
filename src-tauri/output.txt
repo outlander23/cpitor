@@ -1,0 +1,4 @@
+labu is gay
+Stack size: 1GB 
+Execution Time : 0.00115s
+Execution Memory : 0MB

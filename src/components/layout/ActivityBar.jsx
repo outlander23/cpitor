@@ -1,4 +1,5 @@
 import React from "react";
+import { FaTerminal, FaPlay, FaTrash, FaSpinner } from "react-icons/fa";
 import {
   FileCode,
   GitBranch,
@@ -22,6 +23,9 @@ export default function ActivityBar() {
     activeView,
     theme,
     toggleTheme,
+    compileAndRun,
+    isRunning,
+    activeFile,
   } = useEditor();
 
   const isDark = theme === "dark";
@@ -47,22 +51,22 @@ export default function ActivityBar() {
       label: "Explorer",
     },
     {
-      icon: <GitBranch className="h-5 w-5" />,
-      action: () => changeView("sourceControl"),
-      active: activeView === "sourceControl",
-      label: "Source Control",
-    },
-    {
-      icon: <Bug className="h-5 w-5" />,
-      action: () => changeView("debug"),
-      active: activeView === "debug",
+      icon: (
+        <FaPlay
+          className={`h-5 w-5 ${
+            isRunning || !activeFile || activeView !== "editor"
+              ? "text-gray-400"
+              : "text-green-500"
+          }`}
+        />
+      ),
+      action: () => {
+        if (!isRunning && activeFile && activeView === "editor")
+          compileAndRun();
+      },
+      active: activeView === "run",
       label: "Run & Debug",
-    },
-    {
-      icon: <Package className="h-5 w-5" />,
-      action: () => changeView("extensions"),
-      active: activeView === "extensions",
-      label: "Extensions",
+      disabled: isRunning || !activeFile,
     },
   ];
 

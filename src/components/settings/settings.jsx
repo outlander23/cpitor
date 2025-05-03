@@ -5,24 +5,19 @@ import { useEditor } from "../../context/EditorContext";
 import { ChevronDown, ChevronRight, Check, Save } from "lucide-react";
 
 export default function SettingsPage() {
+  const [showSaved, setShowSaved] = useState(false);
   const { settings, updateSettings, toggleTheme, theme } = useEditor();
   // use localSettings for preview; palette comes from localSettings.theme
   const [localSettings, setLocalSettings] = useState(settings);
   const [activeCategory, setActiveCategory] = useState("commonly-used");
-  const [expandedSections, setExpandedSections] = useState({
-    editor: true,
-    files: false,
-    appearance: false,
-    cpp: false,
-  });
+  // Only one section open at a time
+  const [openSection, setOpenSection] = useState("editor");
 
   const palette = localSettings.themeColors[localSettings.theme];
 
+  // Only one section can be open at a time
   const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    setOpenSection((prev) => (prev === section ? null : section));
   };
 
   const handleChange = (key, value) => {
@@ -54,7 +49,9 @@ export default function SettingsPage() {
   };
 
   const handleSave = () => {
+    setShowSaved(true);
     updateSettings(localSettings);
+    setTimeout(() => setShowSaved(false), 1200);
   };
 
   const categories = [{ id: "commonly-used", name: "Commonly Used" }];
@@ -87,14 +84,14 @@ export default function SettingsPage() {
               <span className="mr-2">📝</span>
               <span>Editor</span>
             </div>
-            {expandedSections.editor ? (
+            {openSection === "editor" ? (
               <ChevronDown className="h-5 w-5" />
             ) : (
               <ChevronRight className="h-5 w-5" />
             )}
           </div>
 
-          {expandedSections.editor && (
+          {openSection === "editor" && (
             <div
               className="p-4 space-y-6"
               style={{ background: palette.editorBackground }}
@@ -369,14 +366,14 @@ export default function SettingsPage() {
               <span className="mr-2">📄</span>
               <span>Files</span>
             </div>
-            {expandedSections.files ? (
+            {openSection === "files" ? (
               <ChevronDown className="h-5 w-5" />
             ) : (
               <ChevronRight className="h-5 w-5" />
             )}
           </div>
 
-          {expandedSections.files && (
+          {openSection === "files" && (
             <div
               className="p-4 space-y-6"
               style={{ background: palette.editorBackground }}
@@ -458,14 +455,14 @@ export default function SettingsPage() {
               <span className="mr-2">🎨</span>
               <span>Appearance</span>
             </div>
-            {expandedSections.appearance ? (
+            {openSection === "appearance" ? (
               <ChevronDown className="h-5 w-5" />
             ) : (
               <ChevronRight className="h-5 w-5" />
             )}
           </div>
 
-          {expandedSections.appearance && (
+          {openSection === "appearance" && (
             <div
               className="p-4 space-y-6"
               style={{ background: palette.editorBackground }}
@@ -580,14 +577,14 @@ export default function SettingsPage() {
               <span className="mr-2">⚙️</span>
               <span>C++ Configuration</span>
             </div>
-            {expandedSections.cpp ? (
+            {openSection === "cpp" ? (
               <ChevronDown className="h-5 w-5" />
             ) : (
               <ChevronRight className="h-5 w-5" />
             )}
           </div>
 
-          {expandedSections.cpp && (
+          {openSection === "cpp" && (
             <div
               className="p-4 space-y-6"
               style={{ background: palette.editorBackground }}
@@ -644,9 +641,21 @@ export default function SettingsPage() {
 
         {/* Save Button */}
         <div className="mt-8">
+          {showSaved && (
+            <div
+              className="mb-3 px-4 py-2 rounded text-sm font-medium shadow transition-opacity duration-200"
+              style={{
+                background: palette.successForeground || "#1BFD56",
+                color: palette.sidebarBackground,
+                opacity: showSaved ? 1 : 0,
+              }}
+            >
+              Settings saved!
+            </div>
+          )}
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 rounded"
+            className="flex items-center gap-2 px-4 py-2 rounded cursor-pointer hover:to-blue-400"
             style={{
               backgroundColor: palette.navbarBackground,
               color: palette.navbarForeground,

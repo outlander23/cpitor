@@ -29,6 +29,7 @@ export function EditorProvider({ children }) {
   const [isRunning, setIsRunning] = useState(false);
   const [activeDirectory, setActiveDirectory] = useState("");
   const [recentDirs, setRecentDirs] = useState([]);
+  const [currentOpenDir, setCurrentOpenDir] = useState();
 
   // Derived state
   const activeFile = openFiles.find((f) => f.path === activeFilePath);
@@ -70,6 +71,7 @@ export function EditorProvider({ children }) {
         setShowFileExplorer(true);
         setActiveView("editor");
         setActiveDirectory(selected);
+        setCurrentOpenDir(selected);
         await addRecentFolder(selected);
       }
     } catch (err) {
@@ -472,6 +474,7 @@ export function EditorProvider({ children }) {
     openFolder,
     addNewFile,
     recentDirs,
+    currentOpenDir,
   };
 
   return (
