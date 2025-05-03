@@ -6,6 +6,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { defaultSettings } from "../utils/settings";
 import { invoke } from "@tauri-apps/api/core";
 import { homeDir } from "@tauri-apps/api/path";
+
 const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
@@ -31,19 +32,34 @@ export function EditorProvider({ children }) {
   const [recentDirs, setRecentDirs] = useState([]);
   const [currentOpenDir, setCurrentOpenDir] = useState();
 
+  // --- Timer State ---
+  const [timerActive, setTimerActive] = useState(false);
+  const [timerValue, setTimerValue] = useState(0);
+  const [showTimerFloating, setShowTimerFloating] = useState(false);
+
+  useEffect(() => {
+    let interval;
+    if (timerActive) {
+      interval = setInterval(() => setTimerValue((v) => v + 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerActive]);
+
+  const startTimer = () => setTimerActive(true);
+  const stopTimer = () => setTimerActive(false);
+  const resetTimer = () => {
+    setTimerActive(false);
+    setTimerValue(0);
+  };
+  const toggleTimerFloating = () => setShowTimerFloating((v) => !v);
+
   // Derived state
   const activeFile = openFiles.find((f) => f.path === activeFilePath);
 
   // change view
   const changeView = (view) => {
-    // setActiveView(view);
-
     if (view === activeView) {
-      if (view === "editor") {
-        setActiveView("editor");
-      } else {
-        setActiveView("editor");
-      }
+      setActiveView("editor");
     } else {
       setActiveView(view);
     }
@@ -56,6 +72,7 @@ export function EditorProvider({ children }) {
     recents = recents.slice(0, 3);
     await updateSettings({ recentOpenedFolders: recents });
   };
+
   const openFolder = async (dir) => {
     try {
       let selected = dir;
@@ -78,6 +95,7 @@ export function EditorProvider({ children }) {
       setTerminalOutput(`Error opening folder: ${err}\n`);
     }
   };
+
   // --- Settings Logic ---
   useEffect(() => {
     async function initStore() {
@@ -303,7 +321,6 @@ export function EditorProvider({ children }) {
 
       // 5. Show the explorer & switch to editor view
       setIsDirOpen(true);
-      // setOpenDirPath(savePath.replace(`/${fileName}`, ""));
       setShowFileExplorer(true);
 
       setActiveView("editor");
@@ -341,7 +358,7 @@ export function EditorProvider({ children }) {
   const handleSaveAs = async () => {
     try {
       const path = await save({
-        filters: [{ name: "Code", extensions: ["txt", "cpp", "js", "ts"] }],
+        filters: [{ name: "Code", extensions: ["cpp"] }],
       });
       if (path) {
         await writeTextFile(path, activeFile?.content || "");
@@ -369,12 +386,10 @@ export function EditorProvider({ children }) {
     try {
       const currentWindow = await getCurrentWindow();
       const isFullscreen = await currentWindow.isFullscreen();
-      if (isFullscreen) {
-        await currentWindow.unmaximize();
-      } else {
-        await currentWindow.maximize();
-      }
-    } catch (err) {}
+      await currentWindow.setFullscreen(!isFullscreen);
+    } catch (err) {
+      // handle error if needed
+    }
   };
 
   const handleMenuAction = (label) => {
@@ -462,6 +477,7 @@ export function EditorProvider({ children }) {
     settings,
     updateSettings,
     getSetting,
+    handleFullscreen,
 
     // Directory
     isDirOpen,
@@ -475,6 +491,15 @@ export function EditorProvider({ children }) {
     addNewFile,
     recentDirs,
     currentOpenDir,
+
+    // Timer
+    timerValue,
+    timerActive,
+    startTimer,
+    stopTimer,
+    resetTimer,
+    showTimerFloating,
+    toggleTimerFloating,
   };
 
   return (

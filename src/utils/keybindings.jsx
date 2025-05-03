@@ -5,7 +5,7 @@ const Keybindings = {
     { label: "New File", shortcut: "Ctrl+N", command: "newFile" },
     { label: "Open File...", shortcut: "Ctrl+O", command: "openFile" },
     { label: "Save", shortcut: "Ctrl+S", command: "saveFile" },
-    { label: "Save As...", shortcut: "Ctrl+Shift+S", command: "saveFileAs" },
+    // { label: "Save As...", shortcut: "Ctrl+Shift+S", command: "saveFileAs" },
     { label: "Exit", shortcut: "Ctrl+Q", command: "exitApp" },
   ],
 
@@ -23,8 +23,8 @@ const Keybindings = {
       shortcut: "F11",
       command: "toggleFullScreen",
     },
-    { label: "Zoom In", shortcut: "Ctrl++", command: "zoomIn" },
-    { label: "Zoom Out", shortcut: "Ctrl+-", command: "zoomOut" },
+    // { label: "Zoom In", shortcut: "Ctrl++", command: "zoomIn" },
+    // { label: "Zoom Out", shortcut: "Ctrl+-", command: "zoomOut" },
   ],
 
   Run: [
@@ -35,10 +35,7 @@ const Keybindings = {
     },
   ],
 
-  Help: [
-    { label: "View Help", shortcut: "F1", command: "viewHelp" },
-    { label: "About", shortcut: "", command: "about" },
-  ],
+  Help: [{ label: "View Help", shortcut: "F1", command: "viewHelp" }],
 };
 
 export default Keybindings;

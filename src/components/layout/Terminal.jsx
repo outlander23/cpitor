@@ -61,7 +61,7 @@ export default function Terminal() {
     const current = tabs.find((t) => t.id === activeTab);
     return (
       <div
-        className={`h-10 flex items-center px-2 border-t ${headerBorder} ${headerBg} cursor-pointer ${fg}`}
+        className={` flex items-center px-2 border-t ${headerBorder} ${headerBg} cursor-pointer ${fg}`}
         onClick={() => setIsExpanded(true)}
       >
         <ChevronRight className="h-4 w-4" />
@@ -72,7 +72,7 @@ export default function Terminal() {
 
   return (
     <div
-      className={`flex flex-col h-64 border-t ${headerBorder} shadow-lg ${bg}`}
+      className={`flex flex-col h-full border-t ${headerBorder} shadow-lg ${bg}`}
     >
       {/* Header: tabs + controls */}
       <div className={`flex items-center border-b ${headerBorder} ${headerBg}`}>
@@ -124,9 +124,7 @@ export default function Terminal() {
         {/* Terminal tab */}
         {active.id === "terminal" && (
           <div>
-            <div className="flex items-center mb-2">
-              <span className={`${fg} mr-2`}>powershell</span>
-            </div>
+            <div className="flex items-center mb-2"></div>
             {active.content.map((line, idx) => (
               <div key={idx} className="text-gray-300">
                 {line}

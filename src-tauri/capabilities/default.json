@@ -12,6 +12,7 @@
     "core:window:allow-start-dragging",
     "core:window:allow-maximize",
     "core:window:allow-unmaximize",
+    "core:window:allow-set-fullscreen",
 
     "fs:default",
     "fs:allow-open",

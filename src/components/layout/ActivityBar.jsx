@@ -12,7 +12,9 @@ import {
   Moon,
   BadgeInfo,
   Home,
+  Clock,
 } from "lucide-react";
+import TimerFloatingWindow from "../timer/timer";
 import { useEditor } from "../../context/EditorContext";
 
 export default function ActivityBar() {
@@ -26,6 +28,9 @@ export default function ActivityBar() {
     compileAndRun,
     isRunning,
     activeFile,
+    showTimerFloating,
+    toggleTimerFloating,
+    timerActive,
   } = useEditor();
 
   const isDark = theme === "dark";
@@ -49,6 +54,19 @@ export default function ActivityBar() {
       },
       active: showFileExplorer && activeView === "editor",
       label: "Explorer",
+    },
+    {
+      icon: (
+        <Clock
+          className={`h-5 w-5 ${
+            timerActive
+              ? "text-blue-400 animate-pulse" // Blinking effect when active
+              : ""
+          }`}
+        />
+      ),
+      action: toggleTimerFloating,
+      label: "Timer",
     },
     {
       icon: (
@@ -146,6 +164,7 @@ export default function ActivityBar() {
           </button>
         ))}
       </div>
+      {showTimerFloating && <TimerFloatingWindow />}
     </div>
   );
 }
