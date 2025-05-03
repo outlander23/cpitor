@@ -46,6 +46,8 @@ function FileBrowser() {
     activeDirectory,
     addNewFileFromExplorer,
     currentOpenDir,
+    activeView,
+    changeView,
   } = useEditor();
 
   const palette = settings.themeColors[settings.theme];
@@ -134,6 +136,9 @@ function FileBrowser() {
                 handleToggleDirectory(fullPath, isOpen);
               } else if (isCppFile) {
                 openFile(fullPath, item.name);
+                if (activeView !== "editor") {
+                  changeView("editor");
+                }
               }
             }}
           >
@@ -197,18 +202,18 @@ function FileBrowser() {
         </span>
         <div className="flex items-center space-x-2">
           <button
-            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-white-400  cursor-pointer "
             title="New File"
             onClick={createFile}
           >
             <Plus size={16} />
           </button>
-          <button
-            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+          {/* <button
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-white-400 courser-pointer"
             title="New Folder"
           >
             <FolderPlus size={16} />
-          </button>
+          </button> */}
         </div>
       </div>
 

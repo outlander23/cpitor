@@ -17,6 +17,8 @@ export default function CodeEditor() {
     closeFile,
     openFileFromLoadscreen,
     settings,
+    isRunning,
+    compileAndRun,
   } = useEditor();
 
   const code = activeFile ? activeFile.content : "";
@@ -60,6 +62,9 @@ export default function CodeEditor() {
         onClose={closeFile}
         onOpen={openFileFromLoadscreen}
         defaultSettings={settings}
+        compileAndRun={compileAndRun}
+        isRunning={isRunning}
+        activeFile={activeFile}
       />
 
       {/* 2) Breadcrumb path navigator */}

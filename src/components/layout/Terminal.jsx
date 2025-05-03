@@ -33,12 +33,7 @@ export default function Terminal() {
     : [];
 
   // prepare tabs
-  const tabs = [
-    { id: "problems", title: "Problems", content: [] },
-    { id: "debug", title: "Debug Console", content: [] },
-    { id: "output", title: "Output", content: [] },
-    { id: "terminal", title: "Terminal", content: terminalLines },
-  ];
+  const tabs = [{ id: "terminal", title: "Terminal", content: terminalLines }];
 
   const active = tabs.find((t) => t.id === activeTab) || tabs[0];
 
@@ -55,20 +50,6 @@ export default function Terminal() {
     theme === "dark"
       ? "bg-[#2d2d2d] text-gray-400 hover:bg-[#2a2a2a]"
       : "bg-gray-100 text-gray-600 hover:bg-gray-200";
-
-  // collapsed header bar
-  if (!isExpanded) {
-    const current = tabs.find((t) => t.id === activeTab);
-    return (
-      <div
-        className={` flex items-center px-2 border-t ${headerBorder} ${headerBg} cursor-pointer ${fg}`}
-        onClick={() => setIsExpanded(true)}
-      >
-        <ChevronRight className="h-4 w-4" />
-        <span className="text-xs ml-1">{current?.title}</span>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -94,17 +75,14 @@ export default function Terminal() {
         ))}
         <div className="ml-auto px-2">
           <button
-            onClick={compileAndRun}
-            disabled={isRunning || !activeFile}
-            className={`p-2 rounded-full transition-colors duration-200 ${
-              isRunning || !activeFile
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-green-500 hover:bg-gray-300 hover:text-green-600"
-            }`}
-            title="Run"
-            aria-label="Run"
+            onClick={() => {
+              clearTerminal();
+            }}
+            className={`p-2 rounded-full transition-colors duration-200 text-red-500 hover:bg-gray-300 hover:text-red-600`}
+            title="Clear"
+            aria-label="Clear"
           >
-            {isRunning ? <FaSpinner className="animate-spin" /> : <FaPlay />}
+            <FaTrash />
           </button>
           <button
             onClick={() => setIsExpanded(false)}

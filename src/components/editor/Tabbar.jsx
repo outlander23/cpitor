@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-
+import { FaPlay, FaSpinner } from "react-icons/fa";
 // VS Code-style TabBar with authentic VS Code colors
 export function TabBar({
   files = [],
@@ -7,7 +7,10 @@ export function TabBar({
   onSelect,
   onClose,
   onOpen,
+  compileAndRun,
+  isRunning,
   defaultSettings,
+  activeFile,
 }) {
   const theme = defaultSettings.theme;
   const palette = defaultSettings.themeColors[theme];
@@ -90,7 +93,7 @@ export function TabBar({
       ref={tabBarRef}
       className="flex items-end border-b"
       style={{
-        background: palette.tabBackground || vscodeBg,
+        background: palette.editorBackground || vscodeBg,
         borderBottom: `1px solid ${palette.tabBorder || vscodeTabBorder}`,
       }}
     >
@@ -107,11 +110,11 @@ export function TabBar({
               className="flex items-center px-4 h-8 cursor-pointer select-none relative group"
               style={{
                 background: isActive
-                  ? palette.tabActiveBackground || vscodeActiveTabBg
-                  : palette.tabBackground || vscodeBg,
+                  ? palette.editorBackground || vscodeActiveTabBg
+                  : palette.editorBackground || vscodeBg,
                 color: isActive
-                  ? palette.tabActiveText || vscodeActiveText
-                  : palette.tabText || vscodeInactiveText,
+                  ? palette.editorForeground || vscodeActiveText
+                  : palette.editorForeground || vscodeInactiveText,
                 borderRight:
                   idx !== displayFiles.length - 1
                     ? `1px solid ${palette.tabBorder || vscodeTabBorder}`
@@ -140,8 +143,8 @@ export function TabBar({
                 className="mr-2 truncate"
                 style={{
                   color: isActive
-                    ? palette.tabActiveText || vscodeActiveText
-                    : palette.tabText || vscodeInactiveText,
+                    ? palette.editorForeground || vscodeActiveText
+                    : palette.editorForeground || vscodeInactiveText,
                 }}
               >
                 {file.name}
@@ -150,7 +153,7 @@ export function TabBar({
                 <span
                   title="Unsaved Changes"
                   style={{
-                    color: palette.tabDirty || vscodeDirtyIndicator,
+                    color: palette.editorForeground || vscodeDirtyIndicator,
                     fontSize: 18,
                     lineHeight: "18px",
                     marginTop: "-2px",
@@ -199,28 +202,17 @@ export function TabBar({
         })}
       </div>
       <button
-        onClick={onOpen}
-        className="px-3 py-1.5 flex-shrink-0 hover:bg-[#2a2d2e] rounded ml-1"
-        style={{
-          color: "#cccccc",
-          marginBottom: 2,
-        }}
-        title="Open File"
-        aria-label="Open File"
+        onClick={compileAndRun}
+        disabled={isRunning || !activeFile}
+        className={`p-2 rounded-full transition-colors duration-200 ${
+          isRunning || !activeFile
+            ? "text-gray-400 cursor-not-allowed"
+            : "text-green-500 hover:bg-gray-300 hover:text-green-600"
+        }`}
+        title="Run"
+        aria-label="Run"
       >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
+        {isRunning ? <FaSpinner className="animate-spin " /> : <FaPlay />}
       </button>
     </div>
   );

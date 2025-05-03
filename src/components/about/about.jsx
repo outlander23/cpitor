@@ -22,7 +22,9 @@ export default function AboutPage() {
           <div>
             <h1 className="text-2xl font-bold mb-1">Cpitor</h1>
             <div className="text-sm opacity-70">Version 1.0.0</div>
-            <div className="text-xs opacity-50">Analysis Fluent Beta</div>
+            <div className="text-xs opacity-50">
+              Competitive Programming Edition
+            </div>
           </div>
         </div>
 
@@ -36,14 +38,15 @@ export default function AboutPage() {
         >
           <h2 className="text-lg font-semibold mb-3">About Cpitor</h2>
           <p className="mb-2 text-sm">
-            Cpitor is a code analysis tool designed to help developers
-            understand and improve their code. It provides a development
-            environment with features like static analysis, code metrics, and
-            dependency visualization.
+            Cpitor is a lightweight and fast text editor built specifically for
+            competitive programmers who code in C++. It offers a clean
+            environment optimized for quick coding, debugging, and running
+            solutions under tight contest conditions.
           </p>
           <p className="text-sm">
-            This tool is designed to be fast, customizable, and user-friendly,
-            making it perfect for both beginners and experienced developers.
+            With features like C++ syntax highlighting, template management, and
+            simple build/run integrations, Cpitor helps you stay focused and
+            efficient during contests.
           </p>
         </div>
 
@@ -61,7 +64,9 @@ export default function AboutPage() {
             <ul className="space-y-1">
               <li>
                 <a
-                  href="#"
+                  href="https://github.com/outlander23/cpitor/wiki"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center text-sm hover:underline"
                   style={{ color: palette.editorForeground }}
                 >
@@ -71,7 +76,9 @@ export default function AboutPage() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="https://github.com/outlander23/cpitor"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center text-sm hover:underline"
                   style={{ color: palette.editorForeground }}
                 >
@@ -81,7 +88,9 @@ export default function AboutPage() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="https://github.com/outlander23/cpitor/issues"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center text-sm hover:underline"
                   style={{ color: palette.editorForeground }}
                 >
@@ -91,7 +100,9 @@ export default function AboutPage() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="https://github.com/outlander23/cpitor/issues/new?assignees=&labels=enhancement&template=feature_request.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center text-sm hover:underline"
                   style={{ color: palette.editorForeground }}
                 >
@@ -114,7 +125,9 @@ export default function AboutPage() {
             <ul className="space-y-1">
               <li>
                 <a
-                  href="#"
+                  href="https://github.com/outlander23/cpitor/LICENSE"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center text-sm hover:underline"
                   style={{ color: palette.editorForeground }}
                 >
@@ -124,7 +137,9 @@ export default function AboutPage() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="https://github.com/outlander23/cpitor/PRIVACY.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center text-sm hover:underline"
                   style={{ color: palette.editorForeground }}
                 >
@@ -134,7 +149,9 @@ export default function AboutPage() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="https://github.com/outlander23/cpitor/TERMS.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center text-sm hover:underline"
                   style={{ color: palette.editorForeground }}
                 >
@@ -144,46 +161,6 @@ export default function AboutPage() {
               </li>
             </ul>
           </div>
-        </div>
-
-        {/* System Info */}
-        <div
-          className="p-4 rounded-lg mb-6"
-          style={{
-            background: palette.sidebarBackground,
-            border: `1px solid ${palette.border}`,
-          }}
-        >
-          <h3 className="text-md font-semibold mb-2">System Info</h3>
-          <table className="w-full text-sm">
-            <tbody>
-              <tr>
-                <td className="py-0.5 pr-4 opacity-70">OS</td>
-                <td>Windows 10 Pro 64-bit</td>
-              </tr>
-              <tr>
-                <td className="py-0.5 pr-4 opacity-70">Memory (System)</td>
-                <td>16.0 GB</td>
-              </tr>
-              <tr>
-                <td className="py-0.5 pr-4 opacity-70">CPU</td>
-                <td>Intel Core i7-10700K @ 3.80GHz</td>
-              </tr>
-              <tr>
-                <td className="py-0.5 pr-4 opacity-70">Renderer</td>
-                <td>WebKit</td>
-              </tr>
-              <tr>
-                <td className="py-0.5 pr-4 opacity-70">Languages</td>
-                <td>JavaScript, TypeScript, HTML, CSS, Vue</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Copyright */}
-        <div className="text-center opacity-50 text-xs">
-          <p>Copyright © 2025 Cpitor. All rights reserved.</p>
         </div>
       </div>
     </div>

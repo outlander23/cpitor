@@ -43,7 +43,7 @@ const HomePage = () => {
       icon: <BadgeInfo className="h-6 w-6" color={iconColor} />,
       title: "About",
       description: "See the app details",
-      action: () => changeView("about"), // Implement as needed
+      action: () => changeView("about"),
     },
     {
       id: "settings",
@@ -59,40 +59,64 @@ const HomePage = () => {
       id: "docs",
       icon: <BookOpen className="h-5 w-5" color={iconColor} />,
       title: "Documentation",
-      url: "#",
+      url: "https://github.com/outlander23/cpitor/wiki",
     },
     {
       id: "github",
       icon: <Github className="h-5 w-5" color={iconColor} />,
       title: "GitHub Repository",
-      url: "#",
+      url: "https://github.com/outlander23/cpitor/",
     },
     {
       id: "support",
       icon: <Coffee className="h-5 w-5" color={iconColor} />,
       title: "Support Development",
-      url: "#",
+      url: "https://github.com/outlander23/cpitor/",
     },
   ];
 
   return (
     <div
-      className="w-full h-full flex flex-col items-center justify-center px-4 overflow-auto py-10"
+      className="w-full h-full min-h-screen flex flex-col items-center justify-center px-2 sm:px-4 overflow-auto py-6 sm:py-10"
       style={{
         background: palette.editorBackground,
         color: palette.editorForeground,
       }}
     >
-      <div className="max-w-4xl w-full flex flex-col items-center">
-        <img src={logo} alt="Cpitor Logo" className="w-16 h-16 mb-4" />
+      <div className="max-w-5xl w-full flex flex-col items-center">
+        {/* Centered Logo With Responsive Sizing */}
+        <div className="flex flex-col items-center mb-4 w-full">
+          <img
+            src={logo}
+            alt="Cpitor Logo"
+            className="my-4"
+            style={{
+              width: "80px",
+              height: "80px",
+              objectFit: "contain",
+              maxWidth: "100%",
+              borderRadius: "16px",
+              boxShadow:
+                currentTheme === "dark"
+                  ? "0 2px 12px rgba(0,0,0,0.5)"
+                  : "0 2px 12px rgba(0,0,0,0.08)",
+              background: palette.sidebarBackground,
+              border: `2px solid ${palette.border}`,
+            }}
+          />
+          <h1 className="text-2xl font-bold tracking-tight mt-1 mb-4 text-center">
+            Cpitor
+          </h1>
+        </div>
 
         <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Actions */}
           <div
-            className="lg:col-span-2 rounded-lg p-6"
+            className="lg:col-span-2 rounded-lg p-6 h-full"
             style={{
               backgroundColor: palette.sidebarBackground,
               border: `1px solid ${palette.border}`,
+              minHeight: 260,
             }}
           >
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
@@ -100,7 +124,7 @@ const HomePage = () => {
               {quickActions.map((action) => (
                 <div
                   key={action.id}
-                  className="flex items-start p-4 rounded-md cursor-pointer"
+                  className="flex items-start p-4 rounded-md cursor-pointer transition-colors"
                   style={{
                     backgroundColor:
                       hoverCard === action.id
@@ -121,6 +145,11 @@ const HomePage = () => {
                         currentTheme === "dark"
                           ? "rgba(255, 255, 255, 0.1)"
                           : "rgba(0, 0, 0, 0.05)",
+                      minWidth: 40,
+                      minHeight: 40,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     {action.icon}
@@ -136,10 +165,11 @@ const HomePage = () => {
 
           {/* Recent Folders */}
           <div
-            className="rounded-lg p-6"
+            className="rounded-lg p-6 h-full"
             style={{
               backgroundColor: palette.sidebarBackground,
               border: `1px solid ${palette.border}`,
+              minHeight: 260,
             }}
           >
             <h2 className="text-xl font-semibold mb-4">Recent Folders</h2>
@@ -151,7 +181,7 @@ const HomePage = () => {
                 recentsDirs.map((dir, index) => (
                   <div
                     key={dir}
-                    className="flex items-center justify-between p-3 rounded-md cursor-pointer"
+                    className="flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors"
                     style={{
                       backgroundColor:
                         hoverCard === `recent-folder-${index}`
@@ -222,6 +252,8 @@ const HomePage = () => {
                     href={resource.url}
                     className="flex items-center"
                     style={{ color: palette.editorForeground }}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     {resource.icon}
                     <span className="ml-2">{resource.title}</span>
@@ -230,11 +262,6 @@ const HomePage = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center opacity-60 text-sm">
-          <p className="mt-1">Copyright © 2025 Cpitor. All rights reserved.</p>
         </div>
       </div>
     </div>

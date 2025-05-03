@@ -8,7 +8,7 @@ export function Breadcrumb({ path = [] }) {
 
   return (
     <div
-      className="flex items-center h-6 mt-1 text-xs px-2 border-b"
+      className="flex items-center h-6 mt-1 text-xs px-2 "
       style={{
         background: palette.editorBackground || "#1e1e1e",
         color: palette.editorForeground || "#cccccc",
