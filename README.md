@@ -1,72 +1,52 @@
-# Cpitor
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/89b65f0f-5078-46f6-a56b-feb71a98bcd7" alt="Cpitor Logo" width="42" style="vertical-align: middle;"/>
+ 
+</p>
 
-**Cpitor** is a **lightweight, Linux-based text editor** specifically designed for **competitive programmers**. Built with a sleek interface and minimal resource usage, Cpitor empowers developers to write, test, and debug code efficiently.
 
-> 🚀 **Download size**: ~5 MB  
-> 🖥️ **Memory usage**: < 40 MB RAM
+<h1 align="center">Cpitor</h1>
+<p align="center"><strong>Lightweight, Linux-based Text Editor for Competitive Programmers</strong></p>
+
+<p align="center">
+🚀 Download size: ~5MB | 🖥️ Memory usage: &lt; 40MB RAM
+</p>
+
+<p align="center">
+  <a href="https://github.com/outlander23/cpitor/releases">Download Latest</a> |
+  <a href="https://github.com/outlander23/cpitor/issues">Report Issues</a>
+</p>
 
 ---
 
-## 📦 Project Links
+## 📸 Screenshot
 
-- **Repository**: [GitHub](https://github.com/outlander23/cpitor)
-- **Releases**: [Download Latest](https://github.com/outlander23/cpitor/releases)
-- **Issue Tracker**: [Report Issues](https://github.com/outlander23/cpitor/issues)
+![Cpitor Screenshot](https://github.com/user-attachments/assets/ac7339d0-9c26-4fbf-8a8d-d047fa6ad257)
 
 ---
 
 ## 🏆 Features
 
-### **Optimized for Competitive Programming**
-
-- **Syntax Highlighting** & **Auto-Indentation**
-- **Single-Key Compile & Run** (F7)
-- **Fast Scrolling** for large code files
-
-### **Test Case Management**
-
-- Side-by-side Input/Output panels
-- Save and switch between multiple test cases
-
-### **Timer**
-
-- Track your coding sessions
-- Countdown mode for contest simulations
-
-### **One-Click Compilation**
-
-- Pre-configured C++ toolchain
-- Instant feedback in the integrated console
-
----
+- **Optimized for Competitive Programming** — Syntax Highlighting, Auto-Indentation, Fast Scrolling, F7 Compile & Run
+- **Test Case Management** — Side-by-side Input/Output, Save & Switch between cases
+- **Timer** — Coding session tracker with Countdown mode
+- **One-Click Compilation** — Pre-configured C++ toolchain with instant feedback
 
 ## 📂 Lightweight File Management
 
-- Open, edit, and save `.cpp`, `.h`, and plain-text files
-- Create new files using customizable boilerplate templates
-- **Recent Projects** sidebar for quick access
-
----
+- Open, edit, save `.cpp`, `.h`, and text files
+- Customizable boilerplate templates
+- Recent Projects sidebar for quick access
 
 ## 🎨 Customizable Themes & Settings
 
-- Toggle between **Light** and **Dark** modes
-- Fully customizable:
-  - Editor Colors
-  - Font Family & Size
-  - Tab Width & Indentation
+- Light and Dark mode toggles
+- Customizable editor colors, fonts, tab width, and indentation
 - Save multiple profiles in JSON format
-
----
 
 ## ⚙️ Advanced Settings
 
-Fine-tune your environment with advanced options:
-
-1. **Max Runtime (s)**: Terminate code execution if it exceeds a specified time limit.
-2. **Environment Flags (JSON)**: Pass custom `#define` flags at compile time for enhanced debugging.
-
-Example:
+- Max Runtime limiter (auto-terminate code)
+- Environment Flags (`#define`) for advanced debugging
 
 ```cpp
 #include <bits/stdc++.h>
@@ -76,7 +56,8 @@ int main() {
 #ifdef ONPC
     cout << "Running in local debug mode" << endl;
 #endif
-    return
+    return 0;
+}
 ```
 
 ## 🚀 Quick Start
