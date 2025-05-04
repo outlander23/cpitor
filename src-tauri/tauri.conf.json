@@ -13,11 +13,11 @@
     "windows": [
       {
         "title": "cpitor",
-        "width": 800,
+        "width": 1000,
         "decorations": false,
-        "height": 600,
-        "minHeight": 600,
-        "minWidth": 800
+        "height": 700,
+        "minHeight": 700,
+        "minWidth": 1000
       }
     ],
     "security": {

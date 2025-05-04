@@ -21,7 +21,7 @@ export default function AboutPage() {
           <img src={logo} alt="Cpitor Logo" className="w-36 h-36 mr-4" />
           <div>
             <h1 className="text-2xl font-bold mb-1">Cpitor</h1>
-            <div className="text-sm opacity-70">Version 1.0.0</div>
+            <div className="text-sm opacity-70">Version 0.1.0</div>
             <div className="text-xs opacity-50">
               Competitive Programming Edition
             </div>
