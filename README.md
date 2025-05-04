@@ -8,7 +8,7 @@
 <p align="center"><strong>Lightweight, Linux-based Text Editor for Competitive Programmers</strong></p>
 
 <p align="center">
-🚀 Download size: ~5MB | 🖥️ Memory usage: &lt; 40MB RAM
+🚀 Download size: ~5MB | 🖥️ Memory usage: ~ 40MB RAM
 </p>
 
 <p align="center">
