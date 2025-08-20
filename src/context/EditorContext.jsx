@@ -6,11 +6,13 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { defaultSettings } from "../utils/settings";
 import { invoke } from "@tauri-apps/api/core";
 import { homeDir } from "@tauri-apps/api/path";
+import init, { format } from "@wasm-fmt/clang-format";
 
 const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
   // --- State Variables ---
+  const [activeFile, setActiveFile] = useState([]);
   const [activeView, setActiveView] = useState("home");
   const [settings, setSettings] = useState(defaultSettings);
   const [store, setStore] = useState(null);
@@ -36,7 +38,23 @@ export function EditorProvider({ children }) {
   const [timerActive, setTimerActive] = useState(false);
   const [timerValue, setTimerValue] = useState(0);
   const [showTimerFloating, setShowTimerFloating] = useState(false);
+  // wasm formatter readiness
+  const [wasmReady, setWasmReady] = useState(false);
 
+  useEffect(() => {
+    let mounted = true;
+    init()
+      .then(() => {
+        if (mounted) setWasmReady(true);
+      })
+      .catch(() => {
+        // formatter failed to init; continue without formatting
+        if (mounted) setWasmReady(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
   useEffect(() => {
     let interval;
     if (timerActive) {
@@ -53,9 +71,11 @@ export function EditorProvider({ children }) {
   };
   const toggleTimerFloating = () => setShowTimerFloating((v) => !v);
 
-  // Derived state
-  const activeFile = openFiles.find((f) => f.path === activeFilePath);
-
+  // Sync activeFile whenever openFiles or activeFilePath changes
+  useEffect(() => {
+    const file = openFiles.find((f) => f.path === activeFilePath) || null;
+    setActiveFile(file);
+  }, [openFiles, activeFilePath]);
   // change view
   const changeView = (view) => {
     if (view === activeView) {
@@ -188,9 +208,37 @@ export function EditorProvider({ children }) {
       return;
     }
     try {
-      await writeTextFile(file.path, file.content);
+      // attempt format if wasm formatter initialized, otherwise keep original content
+      let formatted = file.content;
+      if (wasmReady && typeof format === "function") {
+        try {
+          // format may be async
+          const maybe = format(file.content, "main.cpp", "Google");
+          // support both promise and sync return
+          formatted = maybe instanceof Promise ? await maybe : maybe;
+        } catch (e) {
+          // formatting failed, fallback to raw content
+          formatted = file.content;
+        }
+      }
+
+      await writeTextFile(file.path, formatted);
+
+      // update in-memory openFiles to keep state consistent with disk
+      setOpenFiles((prev) =>
+        prev.map((f) =>
+          f.path === file.path ? { ...f, content: formatted } : f
+        )
+      );
+
+      setActiveFile({
+        ...file,
+        content: formatted,
+      });
     } catch (err) {
-      throw err; // Re-throw to handle in compileAndRun
+      // report and rethrow so callers (compileAndRun) can handle
+      setTerminalOutput(`Error saving file: ${err}\n`);
+      throw err;
     }
   };
 
@@ -453,7 +501,7 @@ export function EditorProvider({ children }) {
     openFileFromLoadscreen,
     closeFile,
     saveFile,
-    setActiveFile: setActiveFilePath,
+    setActiveFilePath,
 
     // Title Bar Actions
     handleNewFile,

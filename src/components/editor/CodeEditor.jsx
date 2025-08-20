@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useEditor } from "../../context/EditorContext";
-import HomePage from "../home/home";
+
 import { TabBar } from "./Tabbar";
 import { Breadcrumb } from "./Breadcrumb"; // ← new import
 
@@ -13,13 +13,15 @@ export default function CodeEditor() {
     saveFile,
     openFiles,
     activeFile,
-    setActiveFile,
+    setActiveFilePath,
     closeFile,
     openFileFromLoadscreen,
     settings,
     isRunning,
     compileAndRun,
   } = useEditor();
+
+  const editorRef = useRef(null);
 
   const code = activeFile ? activeFile.content : "";
   const palette = settings.themeColors[settings.theme];
@@ -37,10 +39,33 @@ export default function CodeEditor() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [saveFile]);
 
+  // Keep editor model in sync when activeFile.content changes,
+  // but preserve view state (cursor/scroll) to avoid jumping to end.
+  useEffect(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    const model = ed.getModel();
+    if (!model) return;
+    const current = ed.getValue();
+    const incoming = activeFile?.content ?? "";
+    if (current === incoming) return;
+
+    // save view (selection + scroll)
+    const viewState = ed.saveViewState();
+
+    // update model value
+    model.setValue(incoming);
+
+    // restore view state (if available)
+    if (viewState) {
+      ed.restoreViewState(viewState);
+      ed.focus();
+    }
+  }, [activeFile?.content, activeFile?.path]);
+
   // Example breadcrumb path based on activeFile.path (edit for your use case)
   let breadcrumbPath = [];
   if (activeFile?.path) {
-    // e.g. "pages/index.vue/template/div"
     breadcrumbPath = activeFile.path.split("/").filter(Boolean);
   } else {
     breadcrumbPath = [];
@@ -58,7 +83,7 @@ export default function CodeEditor() {
       <TabBar
         files={openFiles}
         activePath={activeFile?.path}
-        onSelect={setActiveFile}
+        onSelect={setActiveFilePath}
         onClose={closeFile}
         onOpen={openFileFromLoadscreen}
         defaultSettings={settings}
@@ -73,9 +98,12 @@ export default function CodeEditor() {
       {/* 3) Editor or HomePage */}
       <div className="flex-1 relative">
         <Editor
-          language={activeFile.language || "cpp"}
-          value={code}
-          onChange={handleCodeChange}
+          language={"cpp"}
+          defaultValue={code}
+          onMount={(editor) => {
+            editorRef.current = editor;
+          }}
+          onChange={(value) => handleCodeChange(value || "")}
           theme={monacoTheme}
           options={{
             automaticLayout: true,

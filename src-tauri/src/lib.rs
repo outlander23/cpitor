@@ -21,7 +21,14 @@ fn compile_and_run_cpp(
     input: String,
 ) -> CompileResult {
     let cpp_path = Path::new(file_path.as_str());
-    let exe_path = cpp_path.with_extension("out");
+
+    // Set OS-specific extension for the executable
+    let exe_extension = if cfg!(target_os = "windows") {
+        "out.exe"
+    } else {
+        "out"
+    };
+    let exe_path = cpp_path.with_extension(exe_extension);
 
     // Ensure the file exists
     if !cpp_path.exists() {
