@@ -341,43 +341,90 @@ export function EditorProvider({ children }) {
     }
   };
 
-  const addNewFileFromExplorer = async () => {
-    try {
-      // 1. Get the user's home directory
-      const home = activeDirectory || (await homeDir());
+  // helper: cross-platform basename/dirname (ensure available where used)
+  function basename(p) {
+    if (!p) return "";
+    const parts = p.split(/[\\/]+/);
+    return parts[parts.length - 1] || "";
+  }
+  function dirname(p) {
+    if (!p) return "";
+    const i1 = p.lastIndexOf("/");
+    const i2 = p.lastIndexOf("\\");
+    const idx = Math.max(i1, i2);
+    if (idx === -1) return "";
+    return p.substring(0, idx);
+  }
 
-      // 2. Show the Save As dialog, defaulting to "untitled.cpp" in the home dir
+  // --- New: create file inside specific directory and return created path ---
+  // Uses existing `writeTextFile`, `save`, `homeDir`, state setters (activeFile, openFiles, etc.)
+  const addNewFileInDirectory = async (dir) => {
+    try {
+      const baseDir = dir || activeDirectory || (await homeDir());
       const defaultName = "untitled.cpp";
-      const defaultPath = await join(home, defaultName);
+      const defaultPath = `${baseDir}${
+        baseDir.endsWith("/") || baseDir.endsWith("\\") ? "" : "/"
+      }${defaultName}`;
+
       const savePath = await save({
         defaultPath,
         filters: [{ name: "C++ File", extensions: ["cpp", "h"] }],
       });
+
       if (!savePath || typeof savePath !== "string") {
-        // User cancelled
-        return;
+        // user cancelled
+        return null;
       }
 
-      // 3. Create the empty file (or inject boilerplate)
-      const fileName = await basename(savePath);
-      await writeTextFile(savePath, `// ${fileName}\n\n`);
+      const fileName = basename(savePath);
+      const initialContent = `// ${fileName}\n\n`;
+      await writeTextFile(savePath, initialContent);
 
-      // 4. Push it into state & open in editor
-      setOpenFiles((prev) => [
-        ...prev,
-        { path: savePath, name: fileName, content: "" },
-      ]);
+      // insert or update openFiles list
+      setOpenFiles((prev) => {
+        // replace if there was an unsaved activeFile with empty path
+        const idx = prev.findIndex(
+          (f) => f.path === activeFile?.path && (!f.path || f.path === "")
+        );
+        if (idx !== -1) {
+          const copy = [...prev];
+          copy[idx] = {
+            path: savePath,
+            name: fileName,
+            content: initialContent,
+          };
+          return copy;
+        }
+        // avoid duplicate if file already exists by same path
+        if (prev.find((f) => f.path === savePath)) return prev;
+        return [
+          ...prev,
+          { path: savePath, name: fileName, content: initialContent },
+        ];
+      });
+
       setActiveFilePath(savePath);
       setActiveFileName(fileName);
-
-      // 5. Show the explorer & switch to editor view
+      setActiveFile({
+        path: savePath,
+        name: fileName,
+        content: initialContent,
+      });
       setIsDirOpen(true);
+      setOpenDirPath(dirname(savePath));
       setShowFileExplorer(true);
-
       setActiveView("editor");
+      await addRecentFolder(dirname(savePath));
+      return savePath;
     } catch (err) {
-      setTerminalOutput(`Error creating new file: ${err}\n`);
+      setTerminalOutput(`Error creating file: ${err}\n`);
+      return null;
     }
+  };
+
+  // --- New: compatibility wrapper used elsewhere in the app ---
+  const addNewFileFromExplorer = async () => {
+    return await addNewFileInDirectory(activeDirectory);
   };
 
   const handleNewFile = () => {
@@ -539,8 +586,8 @@ export function EditorProvider({ children }) {
     setActiveDirectory,
     activeDirectory,
     addNewFileFromExplorer,
+    addNewFileInDirectory,
     openFolder,
-    addNewFile,
     recentDirs,
     currentOpenDir,
 

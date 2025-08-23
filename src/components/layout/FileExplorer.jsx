@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useEditor } from "../../context/EditorContext";
+import appPalette from "./palette";
 import { homeDir, resolve } from "@tauri-apps/api/path";
 import { readDir } from "@tauri-apps/plugin-fs";
 import {
@@ -36,6 +37,13 @@ function FileBrowser() {
   const [rootPath, setRootPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [contextMenu, setContextMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    dir: null,
+  });
+  const menuRef = useRef(null);
   const {
     showFileExplorer,
     openFile,
@@ -45,12 +53,18 @@ function FileBrowser() {
     setActiveDirectory,
     activeDirectory,
     addNewFileFromExplorer,
+    addNewFileInDirectory,
     currentOpenDir,
     activeView,
     changeView,
   } = useEditor();
 
-  const palette = settings.themeColors[settings.theme];
+  // prefer themeColors from settings if present, otherwise use centralized palette
+  const palette =
+    (settings &&
+      settings.themeColors &&
+      settings.themeColors[settings.theme]) ||
+    appPalette[settings?.theme || "dark"];
 
   // reload directory helper (keeps fileTree in sync)
   async function reloadDirectory(dir) {
@@ -133,6 +147,49 @@ function FileBrowser() {
     }
   }
 
+  // click outside to close context menu
+  useEffect(() => {
+    function onDocClick(e) {
+      if (!contextMenu.visible) return;
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setContextMenu((m) => ({ ...m, visible: false }));
+      }
+    }
+    window.addEventListener("click", onDocClick);
+    return () => window.removeEventListener("click", onDocClick);
+  }, [contextMenu.visible]);
+
+  // show context menu on directory right-click
+  async function onDirectoryContextMenu(e, dirPath) {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      dir: dirPath,
+    });
+  }
+
+  async function handleContextNewFile() {
+    const dir = contextMenu.dir || activeDirectory || openDirPath || rootPath;
+    setContextMenu((m) => ({ ...m, visible: false }));
+    if (!dir) return;
+    // use the context helper to create file in the chosen dir
+    const created = await addNewFileInDirectory(dir);
+    // reload that directory so new file appears
+    await reloadDirectory(dir);
+    if (created) {
+      // optionally expand and open the file automatically
+      setExpandedPaths((prev) => new Set([...Array.from(prev), dir]));
+    }
+  }
+
+  // modify the directory row to attach onContextMenu
+  // ...in renderFileTree replace directory's wrapper onClick logic with:
+  // onContextMenu={(e) => onDirectoryContextMenu(e, fullPath)}
+  // keep click behavior intact for toggling
+
   function renderFileTree(dirPath, depth = 1) {
     const items = fileTree[dirPath] || [];
     return items.map((item) => {
@@ -159,6 +216,9 @@ function FileBrowser() {
                   changeView("editor");
                 }
               }
+            }}
+            onContextMenu={(e) => {
+              if (item.isDir) onDirectoryContextMenu(e, fullPath);
             }}
           >
             <span className="w-4">
@@ -195,81 +255,108 @@ function FileBrowser() {
     });
   }
 
+  // render context menu element
+  const menuStyle = {
+    position: "fixed",
+    left: contextMenu.x,
+    top: contextMenu.y,
+    zIndex: 9999,
+    background: settings.theme === "light" ? "#fff" : "#1f2937",
+    color: settings.theme === "light" ? "#111827" : "#E5E7EB",
+    border: `1px solid ${palette.border}`,
+    borderRadius: 6,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    minWidth: 160,
+  };
+
   if (!showFileExplorer || !isDirOpen) return null;
 
   return (
-    <div
-      className="w-full max-w-sm h-full flex flex-col border-r"
-      style={{
-        fontSize: `${FONT_SIZE}px`,
-        lineHeight: LINE_HEIGHT,
-        backgroundColor: palette.sidebarBackground,
-        color: palette.sidebarForeground,
-        borderRight: `1px solid ${palette.border}`,
-      }}
-    >
+    <>
       <div
-        className="flex items-center justify-between px-4 py-2 border-b"
+        className="w-full max-w-sm h-full flex flex-col border-r"
         style={{
-          borderBottom: `1px solid ${palette.border}`,
-          backgroundColor: palette.headerBackground,
-          color: palette.headerForeground,
+          fontSize: `${FONT_SIZE}px`,
+          lineHeight: LINE_HEIGHT,
+          backgroundColor: palette.sidebarBackground,
+          color: palette.sidebarForeground,
+          borderRight: `1px solid ${palette.border}`,
         }}
       >
-        <span className="text-xs font-bold uppercase tracking-wider">
-          Explorer
-        </span>
-        <div className="flex items-center space-x-2">
-          <button
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-white-400  cursor-pointer "
-            title="New File"
-            onClick={createFile}
-          >
-            <Plus size={16} />
-          </button>
-          {/* <button
+        <div
+          className="flex items-center justify-between px-4 py-2 border-b"
+          style={{
+            borderBottom: `1px solid ${palette.border}`,
+            backgroundColor: palette.headerBackground,
+            color: palette.headerForeground,
+          }}
+        >
+          <span className="text-xs font-bold uppercase tracking-wider">
+            Explorer
+          </span>
+          <div className="flex items-center space-x-2">
+            <button
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-white-400  cursor-pointer "
+              title="New File"
+              onClick={createFile}
+            >
+              <Plus size={16} />
+            </button>
+            {/* <button
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-white-400 courser-pointer"
             title="New Folder"
           >
             <FolderPlus size={16} />
           </button> */}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-1 py-2">
+          {loading ? (
+            <div className="text-gray-500 px-3 py-2">Loading…</div>
+          ) : error ? (
+            <div className="text-red-500 px-3 py-2">{error}</div>
+          ) : (
+            <>
+              <div
+                className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${
+                  settings.theme === "light"
+                    ? "hover:bg-gray-200 text-gray-800"
+                    : "hover:bg-gray-700 text-gray-100"
+                }`}
+                onClick={() =>
+                  handleToggleDirectory(rootPath, expandedPaths.has(rootPath))
+                }
+              >
+                <span className="w-4">
+                  {expandedPaths.has(rootPath) ? (
+                    <ChevronDown size={12} />
+                  ) : (
+                    <ChevronRight size={12} />
+                  )}
+                </span>
+                <FolderOpen size={16} className="text-blue-800" />
+                <span className="ml-1 font-semibold">
+                  {rootPath.split(/[\\/]/).filter(Boolean).pop()}
+                </span>
+              </div>
+              {expandedPaths.has(rootPath) && renderFileTree(rootPath)}
+            </>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-1 py-2">
-        {loading ? (
-          <div className="text-gray-500 px-3 py-2">Loading…</div>
-        ) : error ? (
-          <div className="text-red-500 px-3 py-2">{error}</div>
-        ) : (
-          <>
-            <div
-              className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer rounded-md transition-colors ${
-                settings.theme === "light"
-                  ? "hover:bg-gray-200 text-gray-800"
-                  : "hover:bg-gray-700 text-gray-100"
-              }`}
-              onClick={() =>
-                handleToggleDirectory(rootPath, expandedPaths.has(rootPath))
-              }
-            >
-              <span className="w-4">
-                {expandedPaths.has(rootPath) ? (
-                  <ChevronDown size={12} />
-                ) : (
-                  <ChevronRight size={12} />
-                )}
-              </span>
-              <FolderOpen size={16} className="text-blue-800" />
-              <span className="ml-1 font-semibold">
-                {rootPath.split(/[\\/]/).filter(Boolean).pop()}
-              </span>
-            </div>
-            {expandedPaths.has(rootPath) && renderFileTree(rootPath)}
-          </>
-        )}
-      </div>
-    </div>
+      {contextMenu.visible && (
+        <div ref={menuRef} style={menuStyle}>
+          <div
+            className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+            onClick={handleContextNewFile}
+          >
+            New File
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
