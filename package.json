@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "buildwin": "npm run tauri build -- --runner cargo-xwin --target x86_64-pc-windows-msvc"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

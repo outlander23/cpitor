@@ -5,7 +5,7 @@ import { load } from "@tauri-apps/plugin-store";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { defaultSettings } from "../utils/settings";
 import { invoke } from "@tauri-apps/api/core";
-import { homeDir } from "@tauri-apps/api/path";
+import { homeDir, basename, dirname, join } from "@tauri-apps/api/path";
 import init, { format } from "@wasm-fmt/clang-format";
 
 const EditorContext = createContext();
@@ -180,8 +180,9 @@ export function EditorProvider({ children }) {
         filters: [{ name: "Code Files", extensions: ["cpp"] }],
       });
       if (selected && typeof selected === "string") {
-        const parentPath = selected.substring(0, selected.lastIndexOf("/"));
-        await openFile(selected, selected.split("/").pop());
+        const name = await basename(selected);
+        const parentPath = await dirname(selected);
+        await openFile(selected, name);
         setActiveFilePath(selected);
         setIsDirOpen(true);
         setOpenDirPath(parentPath);
@@ -307,8 +308,9 @@ export function EditorProvider({ children }) {
 
       // 2. Show the Save As dialog, defaulting to "untitled.cpp" in the home dir
       const defaultName = "untitled.cpp";
+      const defaultPath = await join(home, defaultName);
       const savePath = await save({
-        defaultPath: `${home}/${defaultName}`,
+        defaultPath,
         filters: [{ name: "C++ File", extensions: ["cpp", "h"] }],
       });
       if (!savePath || typeof savePath !== "string") {
@@ -317,7 +319,7 @@ export function EditorProvider({ children }) {
       }
 
       // 3. Create the empty file (or inject boilerplate)
-      const fileName = savePath.split("/").pop();
+      const fileName = await basename(savePath);
       await writeTextFile(savePath, `// ${fileName}\n\n`);
 
       // 4. Push it into state & open in editor
@@ -330,7 +332,7 @@ export function EditorProvider({ children }) {
 
       // 5. Show the explorer & switch to editor view
       setIsDirOpen(true);
-      setOpenDirPath(savePath.replace(`/${fileName}`, ""));
+      setOpenDirPath(await dirname(savePath));
       setShowFileExplorer(true);
 
       setActiveView("editor");
@@ -346,8 +348,9 @@ export function EditorProvider({ children }) {
 
       // 2. Show the Save As dialog, defaulting to "untitled.cpp" in the home dir
       const defaultName = "untitled.cpp";
+      const defaultPath = await join(home, defaultName);
       const savePath = await save({
-        defaultPath: `${home}/${defaultName}`,
+        defaultPath,
         filters: [{ name: "C++ File", extensions: ["cpp", "h"] }],
       });
       if (!savePath || typeof savePath !== "string") {
@@ -356,7 +359,7 @@ export function EditorProvider({ children }) {
       }
 
       // 3. Create the empty file (or inject boilerplate)
-      const fileName = savePath.split("/").pop();
+      const fileName = await basename(savePath);
       await writeTextFile(savePath, `// ${fileName}\n\n`);
 
       // 4. Push it into state & open in editor
@@ -387,8 +390,9 @@ export function EditorProvider({ children }) {
         filters: [{ name: "Code", extensions: ["cpp"] }],
       });
       if (path && typeof path === "string") {
-        await openFile(path, path.split("/").pop());
-        setActiveFileName(path);
+        const name = await basename(path);
+        await openFile(path, name);
+        setActiveFileName(name);
       }
     } catch (err) {
       setTerminalOutput(`Error opening file: ${err}\n`);
@@ -410,7 +414,7 @@ export function EditorProvider({ children }) {
       });
       if (path) {
         await writeTextFile(path, activeFile?.content || "");
-        setActiveFileName(path);
+        setActiveFileName(await basename(path));
       }
     } catch (err) {
       setTerminalOutput(`Error saving file: ${err}\n`);
