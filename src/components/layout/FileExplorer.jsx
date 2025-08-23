@@ -52,6 +52,30 @@ function FileBrowser() {
 
   const palette = settings.themeColors[settings.theme];
 
+  // reload directory helper (keeps fileTree in sync)
+  async function reloadDirectory(dir) {
+    try {
+      const dirToLoad = dir || activeDirectory || openDirPath || rootPath;
+      if (!dirToLoad) return;
+      await loadDirectory(dirToLoad);
+      setExpandedPaths((prev) => new Set([...Array.from(prev), dirToLoad]));
+    } catch (e) {
+      setError("Failed to reload directory: " + (e?.message || e));
+    }
+  }
+
+  const createFile = async () => {
+    try {
+      // await the creation flow in context so we can reload directory afterwards
+      await addNewFileFromExplorer();
+
+      // reload the directory that should contain the new file
+      await reloadDirectory(activeDirectory || openDirPath || rootPath);
+    } catch (e) {
+      setError("Failed to create file: " + (e?.message || e));
+    }
+  };
+
   useEffect(() => {
     async function init() {
       try {
@@ -60,7 +84,7 @@ function FileBrowser() {
         await loadDirectory(home);
         setExpandedPaths(new Set([home]));
       } catch (e) {
-        setError("Failed to initialize: " + e.message);
+        setError("Failed to initialize: " + (e?.message || e));
       } finally {
         setLoading(false);
       }
@@ -94,11 +118,6 @@ function FileBrowser() {
   }
 
   // console.log("activeDirectory", activeDirectory);
-  const createFile = async () => {
-    addNewFileFromExplorer();
-    setExpandedPaths((prev) => new Set([...prev, activeDirectory]));
-  };
-
   async function handleToggleDirectory(path, expanded) {
     try {
       setActiveDirectory(path);
