@@ -13,7 +13,6 @@
     "core:window:allow-maximize",
     "core:window:allow-unmaximize",
     "core:window:allow-set-fullscreen",
-
     "fs:default",
     "fs:allow-open",
     "fs:allow-read",
@@ -28,37 +27,18 @@
     "fs:scope-resource-recursive",
     "fs:allow-app-read-recursive",
     "fs:allow-app-write-recursive",
-
     "dialog:default",
     "dialog:allow-open",
-
     "shell:default",
     "shell:allow-open",
     "shell:allow-spawn",
     "shell:allow-kill",
     "shell:allow-stdin-write",
-    {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        {
-          "name": "compile-cpp",
-          "cmd": "g++",
-          "args": [
-            { "validator": "\\S+\\.cpp" },
-            "-o",
-            { "validator": "\\S+" }
-          ],
-          "sidecar": false
-        },
-        {
-          "name": "run-executable",
-          "cmd": { "validator": "\\S+/\\S+" },
-          "args": [],
-          "sidecar": false
-        }
-      ]
-    },
-
-    "store:default"
+    "shell:allow-execute",
+    "store:default",
+    "os:default",
+    "os:default",
+    "pty:default",
+    "pty:allow-spawn"
   ]
 }

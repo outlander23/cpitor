@@ -1,43 +1,84 @@
 "use client";
 
-import { ChevronRight, X as CloseIcon } from "lucide-react";
-import { FaTerminal, FaPlay, FaTrash, FaSpinner } from "react-icons/fa";
+import { X as CloseIcon } from "lucide-react";
+import { FaTrash } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../context/EditorContext";
 
+import { Terminal as XTerminal } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
+import { spawn } from "tauri-pty";
+import "xterm/css/xterm.css";
+
 export default function Terminal() {
-  const {
-    terminalOutput,
-    activeFile,
-    theme,
-    compileAndRun,
-    isRunning,
-    clearTerminal,
-  } = useEditor();
+  const { theme, clearTerminal } = useEditor();
 
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeTab, setActiveTab] = useState("terminal");
 
-  const terminalRef = useRef(null);
+  const xtermContainerRef = useRef(null);
+  const xtermRef = useRef(null);
+  const fitAddonRef = useRef(null);
+  const ptyRef = useRef(null);
 
-  // scroll to bottom when new output arrives and panel is open
   useEffect(() => {
-    if (isExpanded && activeTab === "terminal" && terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-    }
-  }, [terminalOutput, isExpanded, activeTab]);
+    if (!xtermContainerRef.current) return;
 
-  // split the raw output into lines
-  const terminalLines = terminalOutput
-    ? terminalOutput.split(/\r?\n/).filter((l) => l.length > 0)
-    : [];
+    // 1. Create terminal
+    const term = new XTerminal({
+      cursorBlink: true,
+      convertEol: true,
+      fontSize: 14,
+      theme:
+        theme === "dark"
+          ? { background: "#1e1e1e", foreground: "#d4d4d4" }
+          : { background: "#f9f9f9", foreground: "#333333" },
+    });
 
-  // prepare tabs
-  const tabs = [{ id: "terminal", title: "Terminal", content: terminalLines }];
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    term.open(xtermContainerRef.current);
+    fitAddon.fit();
 
+    // 2. Pick system shell
+    const platform = window.__TAURI__?.os?.platform?.() ?? "unix";
+    const shell = platform === "win32" ? "powershell.exe" : "/bin/bash";
+    console.log(shell);
+    // 3. Spawn PTY (real shell)
+    const pty = spawn(shell, [], {
+      cols: term.cols,
+      rows: term.rows,
+      cwd: ".",
+    });
+
+    // 4. Hook data streams
+    pty.onData((data) => term.write(data));
+    term.onData((data) => pty.write(data));
+
+    // 5. Resize handling
+    const resizeListener = () => fitAddon.fit();
+    window.addEventListener("resize", resizeListener);
+    term.onResize((size) => pty.resize(size.cols, size.rows));
+
+    term.writeln("🚀 Interactive terminal started");
+
+    // Save refs
+    xtermRef.current = term;
+    fitAddonRef.current = fitAddon;
+    ptyRef.current = pty;
+
+    return () => {
+      term.dispose();
+      pty.kill?.();
+      window.removeEventListener("resize", resizeListener);
+    };
+  }, [theme]);
+
+  // Tabs
+  const tabs = [{ id: "terminal", title: "Terminal", content: [] }];
   const active = tabs.find((t) => t.id === activeTab) || tabs[0];
 
-  // theme classes
+  // Theme classes
   const bg = theme === "dark" ? "bg-[#1e1e1e]" : "bg-[#f9f9f9]";
   const fg = theme === "dark" ? "text-gray-200" : "text-gray-800";
   const headerBg = theme === "dark" ? "bg-[#252526]" : "bg-[#e5e7eb]";
@@ -55,7 +96,7 @@ export default function Terminal() {
     <div
       className={`flex flex-col h-full border-t ${headerBorder} shadow-lg ${bg}`}
     >
-      {/* Header: tabs + controls */}
+      {/* Header */}
       <div className={`flex items-center border-b ${headerBorder} ${headerBg}`}>
         {tabs.map((tab) => (
           <div
@@ -66,19 +107,15 @@ export default function Terminal() {
             }`}
           >
             <span>{tab.title}</span>
-            {tab.id === "problems" && tab.content.length > 0 && (
-              <span className="ml-2 px-1.5 py-0.5 bg-red-500 rounded-full text-[10px] text-white">
-                {tab.content.length}
-              </span>
-            )}
           </div>
         ))}
-        <div className="ml-auto px-2">
+        <div className="ml-auto px-2 flex">
           <button
             onClick={() => {
+              xtermRef.current?.clear();
               clearTerminal();
             }}
-            className={`p-2 rounded-full transition-colors duration-200 text-red-500 hover:bg-gray-300 hover:text-red-600`}
+            className="p-2 rounded-full transition-colors duration-200 text-red-500 hover:bg-gray-300 hover:text-red-600"
             title="Clear"
             aria-label="Clear"
           >
@@ -96,55 +133,12 @@ export default function Terminal() {
 
       {/* Content */}
       <div
-        ref={terminalRef}
-        className={`flex-1 overflow-auto p-2 font-mono text-sm ${bg} ${fg}`}
+        className={`flex-1 overflow-hidden p-1 font-mono text-sm ${bg} ${fg}`}
       >
-        {/* Terminal tab */}
         {active.id === "terminal" && (
-          <div>
-            <div className="flex items-center mb-2"></div>
-            {active.content.map((line, idx) => (
-              <div key={idx} className="text-gray-300">
-                {line}
-              </div>
-            ))}
-            {isRunning && (
-              <span className="text-xs text-yellow-400 animate-pulse mt-2 inline-block">
-                ⏳ Running...
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Problems tab */}
-        {active.id === "problems" && (
-          <div>
-            {active.content.length ? (
-              active.content.map((line, idx) => (
-                <div key={idx} className={fg}>
-                  {line}
-                </div>
-              ))
-            ) : (
-              <div className={`text-xs ${fg}`}>No problems</div>
-            )}
-          </div>
-        )}
-
-        {/* Debug Console tab */}
-        {active.id === "debug" && (
-          <div className={`text-xs ${fg}`}>Nothing to show</div>
-        )}
-
-        {/* Output tab */}
-        {active.id === "output" && (
-          <pre className={`whitespace-pre-wrap ${fg}`}>
-            {terminalOutput || "No output"}
-          </pre>
+          <div ref={xtermContainerRef} className="w-full h-full rounded" />
         )}
       </div>
-
-      {/* Footer: run & clear actions (optional) */}
     </div>
   );
 }
