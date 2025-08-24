@@ -9,6 +9,7 @@ import { Terminal as XTerminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { spawn } from "tauri-pty";
 import "xterm/css/xterm.css";
+import { platform } from "@tauri-apps/plugin-os";
 
 export default function Terminal() {
   const { theme, clearTerminal } = useEditor();
@@ -20,9 +21,12 @@ export default function Terminal() {
   const xtermRef = useRef(null);
   const fitAddonRef = useRef(null);
   const ptyRef = useRef(null);
+  const [tmp, setTmp] = useState("");
 
   useEffect(() => {
     if (!xtermContainerRef.current) return;
+
+    const currentPlatform = platform();
 
     // 1. Create terminal
     const term = new XTerminal({
@@ -38,13 +42,15 @@ export default function Terminal() {
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     term.open(xtermContainerRef.current);
-    fitAddon.fit();
+    requestAnimationFrame(() => fitAddon.fit());
 
     // 2. Pick system shell
-    const platform = window.__TAURI__?.os?.platform?.() ?? "unix";
-    const shell = platform === "win32" ? "powershell.exe" : "/bin/bash";
-    console.log(shell);
-    // 3. Spawn PTY (real shell)
+    const shell =
+      currentPlatform === "windows" ? "powershell.exe" : "/bin/bash";
+
+    setTmp(currentPlatform);
+
+    // 3. Spawn PTY
     const pty = spawn(shell, [], {
       cols: term.cols,
       rows: term.rows,
@@ -59,8 +65,6 @@ export default function Terminal() {
     const resizeListener = () => fitAddon.fit();
     window.addEventListener("resize", resizeListener);
     term.onResize((size) => pty.resize(size.cols, size.rows));
-
-    term.writeln("🚀 Interactive terminal started");
 
     // Save refs
     xtermRef.current = term;
@@ -94,7 +98,7 @@ export default function Terminal() {
 
   return (
     <div
-      className={`flex flex-col h-full border-t ${headerBorder} shadow-lg ${bg}`}
+      className={`flex flex-col h-full border-t ${headerBorder} shadow-lg ${bg} rounded-b-lg`}
     >
       {/* Header */}
       <div className={`flex items-center border-b ${headerBorder} ${headerBg}`}>
@@ -132,11 +136,9 @@ export default function Terminal() {
       </div>
 
       {/* Content */}
-      <div
-        className={`flex-1 overflow-hidden p-1 font-mono text-sm ${bg} ${fg}`}
-      >
+      <div className={`flex-1 overflow-hidden font-mono text-sm ${bg} ${fg}`}>
         {active.id === "terminal" && (
-          <div ref={xtermContainerRef} className="w-full h-full rounded" />
+          <div ref={xtermContainerRef} className="w-full h-full rounded-b-lg" />
         )}
       </div>
     </div>
