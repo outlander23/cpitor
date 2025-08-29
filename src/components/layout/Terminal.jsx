@@ -135,12 +135,9 @@ export default function Terminal() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className={`flex-1 overflow-hidden font-mono text-sm ${bg} ${fg}`}>
-        {active.id === "terminal" && (
-          <div ref={xtermContainerRef} className="w-full h-full rounded-b-lg" />
-        )}
-      </div>
+      {active.id === "terminal" && (
+        <div ref={xtermContainerRef} className="w-full h-full rounded-b-lg" />
+      )}
     </div>
   );
 }
