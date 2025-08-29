@@ -104,9 +104,9 @@ const HomePage = () => {
               border: `2px solid ${palette.border}`,
             }}
           />
-          <h1 className="text-2xl font-bold tracking-tight mt-1 mb-4 text-center">
+          {/* <h1 className="text-2xl font-bold tracking-tight mt-1 mb-4 text-center">
             Cpitor
-          </h1>
+          </h1> */}
         </div>
 
         <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
