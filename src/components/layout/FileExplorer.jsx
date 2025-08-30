@@ -57,14 +57,13 @@ function FileBrowser() {
     currentOpenDir,
     activeView,
     changeView,
+    theme,
   } = useEditor();
 
   // prefer themeColors from settings if present, otherwise use centralized palette
   const palette =
-    (settings &&
-      settings.themeColors &&
-      settings.themeColors[settings.theme]) ||
-    appPalette[settings?.theme || "dark"];
+    (settings && settings.themeColors && settings.themeColors[theme]) ||
+    appPalette[theme || "dark"];
 
   // reload directory helper (keeps fileTree in sync)
   async function reloadDirectory(dir) {

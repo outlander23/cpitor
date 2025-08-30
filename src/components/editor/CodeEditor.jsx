@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { useEditor } from "../../context/EditorContext";
 
 import { TabBar } from "./Tabbar";
-import { Breadcrumb } from "./Breadcrumb"; // ← new import
+import { Breadcrumb } from "./Breadcrumb";
 
 export default function CodeEditor() {
   const {
@@ -18,19 +18,23 @@ export default function CodeEditor() {
     openFileFromLoadscreen,
     settings,
     isRunning,
+    theme,
     compileAndRun,
   } = useEditor();
 
   const editorRef = useRef(null);
+  const [code, setCode] = useState("");
 
-  const code = activeFile ? activeFile.content : "";
-  const palette = settings.themeColors[settings.theme];
-  const monacoTheme = settings.theme === "light" ? "light" : "vs-dark";
+  const palette = settings.themeColors[theme];
+  const monacoTheme = theme === "light" ? "light" : "vs-dark";
 
-  // Save shortcut (Ctrl+S / Cmd+S)
+  useEffect(() => {
+    setCode(activeFile?.content ?? "");
+  }, [activeFile]);
+
   useEffect(() => {
     const onKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
         e.preventDefault();
         saveFile();
       }
@@ -39,36 +43,9 @@ export default function CodeEditor() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [saveFile]);
 
-  // Keep editor model in sync when activeFile.content changes,
-  // but preserve view state (cursor/scroll) to avoid jumping to end.
-  useEffect(() => {
-    const ed = editorRef.current;
-    if (!ed) return;
-    const model = ed.getModel();
-    if (!model) return;
-    const current = ed.getValue();
-    const incoming = activeFile?.content ?? "";
-    if (current === incoming) return;
-
-    // save view (selection + scroll)
-    const viewState = ed.saveViewState();
-
-    // update model value
-    model.setValue(incoming);
-
-    // restore view state (if available)
-    if (viewState) {
-      ed.restoreViewState(viewState);
-      ed.focus();
-    }
-  }, [activeFile?.content, activeFile?.path]);
-
-  // Example breadcrumb path based on activeFile.path (edit for your use case)
   let breadcrumbPath = [];
   if (activeFile?.path) {
     breadcrumbPath = activeFile.path.split("/").filter(Boolean);
-  } else {
-    breadcrumbPath = [];
   }
 
   return (
@@ -79,7 +56,6 @@ export default function CodeEditor() {
         color: palette.editorForeground,
       }}
     >
-      {/* 1) VS Code-style Tab Bar */}
       <TabBar
         files={openFiles}
         activePath={activeFile?.path}
@@ -90,20 +66,23 @@ export default function CodeEditor() {
         compileAndRun={compileAndRun}
         isRunning={isRunning}
         activeFile={activeFile}
+        theme={theme}
       />
 
-      {/* 2) Breadcrumb path navigator */}
       <Breadcrumb path={breadcrumbPath} />
 
-      {/* 3) Editor or HomePage */}
       <div className="flex-1 relative">
         <Editor
-          language={"cpp"}
-          defaultValue={code}
+          language={activeFile?.path?.endsWith(".cpp") ? "cpp" : "plaintext"}
+          value={code}
           onMount={(editor) => {
             editorRef.current = editor;
           }}
-          onChange={(value) => handleCodeChange(value || "")}
+          onChange={(value) => {
+            const v = value || "";
+            setCode(v);
+            handleCodeChange(v);
+          }}
           theme={monacoTheme}
           options={{
             automaticLayout: true,

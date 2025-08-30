@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { open, save, ask } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { defaultSettings } from "../utils/settings";
@@ -12,7 +12,7 @@ const EditorContext = createContext();
 
 export function EditorProvider({ children }) {
   // --- State Variables ---
-  const [activeFile, setActiveFile] = useState([]);
+  const [activeFile, setActiveFile] = useState(null);
   const [activeView, setActiveView] = useState("home");
   const [settings, setSettings] = useState(defaultSettings);
   const [store, setStore] = useState(null);
@@ -34,10 +34,11 @@ export function EditorProvider({ children }) {
   const [recentDirs, setRecentDirs] = useState([]);
   const [currentOpenDir, setCurrentOpenDir] = useState();
 
-  // --- Timer State ---
+  // Timer
   const [timerActive, setTimerActive] = useState(false);
   const [timerValue, setTimerValue] = useState(0);
   const [showTimerFloating, setShowTimerFloating] = useState(false);
+
   // wasm formatter readiness
   const [wasmReady, setWasmReady] = useState(false);
 
@@ -48,13 +49,13 @@ export function EditorProvider({ children }) {
         if (mounted) setWasmReady(true);
       })
       .catch(() => {
-        // formatter failed to init; continue without formatting
         if (mounted) setWasmReady(false);
       });
     return () => {
       mounted = false;
     };
   }, []);
+
   useEffect(() => {
     let interval;
     if (timerActive) {
@@ -76,7 +77,7 @@ export function EditorProvider({ children }) {
     const file = openFiles.find((f) => f.path === activeFilePath) || null;
     setActiveFile(file);
   }, [openFiles, activeFilePath]);
-  // change view
+
   const changeView = (view) => {
     if (view === activeView) {
       setActiveView("editor");
@@ -116,7 +117,7 @@ export function EditorProvider({ children }) {
     }
   };
 
-  // --- Settings Logic ---
+  // Settings load
   useEffect(() => {
     async function initStore() {
       try {
@@ -156,7 +157,7 @@ export function EditorProvider({ children }) {
   const getSetting = (key) =>
     settings[key] !== undefined ? settings[key] : defaultSettings[key];
 
-  // --- File Handling Logic ---
+  // --- File Handling ---
   const openFile = async (path, name) => {
     const exists = openFiles.find((f) => f.path === path);
     if (exists) {
@@ -208,61 +209,60 @@ export function EditorProvider({ children }) {
       setTerminalOutput("Error: No active file to save\n");
       return;
     }
+
     try {
-      // attempt format if wasm formatter initialized, otherwise keep original content
       let formatted = file.content;
+
       if (wasmReady && typeof format === "function") {
         try {
-          // format may be async
-          const maybe = format(file.content, "main.cpp", "Google");
-          // support both promise and sync return
-          formatted = maybe instanceof Promise ? await maybe : maybe;
-        } catch (e) {
-          // formatting failed, fallback to raw content
+          const maybe = format(file.content, file.name || "main.cpp", "Google");
+          formatted =
+            maybe && typeof maybe.then === "function" ? await maybe : maybe;
+        } catch (fmtErr) {
+          setTerminalOutput((t) => `${t}Formatting failed: ${fmtErr}\n`);
+          // fall back to original content
           formatted = file.content;
         }
       }
 
       await writeTextFile(file.path, formatted);
 
-      // update in-memory openFiles to keep state consistent with disk
+      // update openFiles and activeFile to reflect saved content
       setOpenFiles((prev) =>
         prev.map((f) =>
           f.path === file.path ? { ...f, content: formatted } : f
         )
       );
 
-      setActiveFile({
-        ...file,
-        content: formatted,
-      });
+      setActiveFile((prev) =>
+        prev && prev.path === file.path ? { ...prev, content: formatted } : prev
+      );
+
+      console.log("Saved file:", file.path);
     } catch (err) {
-      // report and rethrow so callers (compileAndRun) can handle
       setTerminalOutput(`Error saving file: ${err}\n`);
       throw err;
     }
   };
 
   const handleCodeChange = (newCode) => {
-    setOpenFiles((prev) =>
-      prev.map((f) =>
-        f.path === activeFilePath ? { ...f, content: newCode } : f
-      )
+    const data = openFiles.map((f) =>
+      f.path === activeFilePath ? { ...f, content: newCode } : f
     );
+    setOpenFiles(data);
   };
 
-  // --- Compile and Run Logic ---
+  // --- Compile and Run ---
   const compileAndRun = async () => {
     if (isRunning) {
       setTerminalOutput("Already running. Please wait.\n");
       return;
     }
-    if (!activeFile || !activeFile.path.endsWith(".cpp")) {
+    if (!activeFile || !activeFile.path || !activeFile.path.endsWith(".cpp")) {
       setTerminalOutput("Error: No C++ file selected or invalid file type\n");
       return;
     }
 
-    // Save the file first
     try {
       await saveFile();
     } catch (err) {
@@ -300,64 +300,36 @@ export function EditorProvider({ children }) {
     setOutputContent("");
   };
 
-  // --- Title Bar Logic ---
+  // --- Titlebar & file creation ---
   const addNewFile = async () => {
     try {
-      // 1. Get the user's home directory
       const home = await homeDir();
-
-      // 2. Show the Save As dialog, defaulting to "untitled.cpp" in the home dir
       const defaultName = "untitled.cpp";
       const defaultPath = await join(home, defaultName);
       const savePath = await save({
         defaultPath,
         filters: [{ name: "C++ File", extensions: ["cpp", "h"] }],
       });
-      if (!savePath || typeof savePath !== "string") {
-        // User cancelled
-        return;
-      }
+      if (!savePath || typeof savePath !== "string") return;
 
-      // 3. Create the empty file (or inject boilerplate)
       const fileName = await basename(savePath);
       await writeTextFile(savePath, `// ${fileName}\n\n`);
 
-      // 4. Push it into state & open in editor
       setOpenFiles((prev) => [
         ...prev,
         { path: savePath, name: fileName, content: "" },
       ]);
       setActiveFilePath(savePath);
       setActiveFileName(fileName);
-
-      // 5. Show the explorer & switch to editor view
       setIsDirOpen(true);
       setOpenDirPath(await dirname(savePath));
       setShowFileExplorer(true);
-
       setActiveView("editor");
     } catch (err) {
       setTerminalOutput(`Error creating new file: ${err}\n`);
     }
   };
 
-  // helper: cross-platform basename/dirname (ensure available where used)
-  function basename(p) {
-    if (!p) return "";
-    const parts = p.split(/[\\/]+/);
-    return parts[parts.length - 1] || "";
-  }
-  function dirname(p) {
-    if (!p) return "";
-    const i1 = p.lastIndexOf("/");
-    const i2 = p.lastIndexOf("\\");
-    const idx = Math.max(i1, i2);
-    if (idx === -1) return "";
-    return p.substring(0, idx);
-  }
-
-  // --- New: create file inside specific directory and return created path ---
-  // Uses existing `writeTextFile`, `save`, `homeDir`, state setters (activeFile, openFiles, etc.)
   const addNewFileInDirectory = async (dir) => {
     try {
       const baseDir = dir || activeDirectory || (await homeDir());
@@ -371,31 +343,13 @@ export function EditorProvider({ children }) {
         filters: [{ name: "C++ File", extensions: ["cpp", "h"] }],
       });
 
-      if (!savePath || typeof savePath !== "string") {
-        // user cancelled
-        return null;
-      }
+      if (!savePath || typeof savePath !== "string") return null;
 
-      const fileName = basename(savePath);
+      const fileName = await basename(savePath);
       const initialContent = `// ${fileName}\n\n`;
       await writeTextFile(savePath, initialContent);
 
-      // insert or update openFiles list
       setOpenFiles((prev) => {
-        // replace if there was an unsaved activeFile with empty path
-        const idx = prev.findIndex(
-          (f) => f.path === activeFile?.path && (!f.path || f.path === "")
-        );
-        if (idx !== -1) {
-          const copy = [...prev];
-          copy[idx] = {
-            path: savePath,
-            name: fileName,
-            content: initialContent,
-          };
-          return copy;
-        }
-        // avoid duplicate if file already exists by same path
         if (prev.find((f) => f.path === savePath)) return prev;
         return [
           ...prev,
@@ -411,10 +365,10 @@ export function EditorProvider({ children }) {
         content: initialContent,
       });
       setIsDirOpen(true);
-      setOpenDirPath(dirname(savePath));
+      setOpenDirPath(await dirname(savePath));
       setShowFileExplorer(true);
       setActiveView("editor");
-      await addRecentFolder(dirname(savePath));
+      await addRecentFolder(await dirname(savePath));
       return savePath;
     } catch (err) {
       setTerminalOutput(`Error creating file: ${err}\n`);
@@ -422,14 +376,10 @@ export function EditorProvider({ children }) {
     }
   };
 
-  // --- New: compatibility wrapper used elsewhere in the app ---
-  const addNewFileFromExplorer = async () => {
-    return await addNewFileInDirectory(activeDirectory);
-  };
+  const addNewFileFromExplorer = async () =>
+    addNewFileInDirectory(activeDirectory);
 
-  const handleNewFile = () => {
-    addNewFile();
-  };
+  const handleNewFile = () => addNewFile();
 
   const handleOpenFile = async () => {
     try {
@@ -486,9 +436,7 @@ export function EditorProvider({ children }) {
       const currentWindow = await getCurrentWindow();
       const isFullscreen = await currentWindow.isFullscreen();
       await currentWindow.setFullscreen(!isFullscreen);
-    } catch (err) {
-      // handle error if needed
-    }
+    } catch (err) {}
   };
 
   const handleMenuAction = (label) => {
@@ -520,19 +468,12 @@ export function EditorProvider({ children }) {
       case "Minimize":
         handleMinimize();
         break;
-      case "Zoom In":
-        // TODO: Implement zoom in functionality
-        break;
-      case "Zoom Out":
-        // TODO: Implement zoom out functionality
-        break;
       default:
     }
   };
 
   // --- Context Value ---
   const value = {
-    // View and UI
     activeView,
     changeView,
     theme,

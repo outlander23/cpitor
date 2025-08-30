@@ -7,12 +7,12 @@ export function TabBar({
   onSelect,
   onClose,
   onOpen,
+  theme,
   compileAndRun,
   isRunning,
   defaultSettings,
   activeFile,
 }) {
-  const theme = defaultSettings.theme;
   const palette = defaultSettings.themeColors[theme];
   const tabBarRef = useRef(null);
 
