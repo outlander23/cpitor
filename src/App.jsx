@@ -141,13 +141,35 @@ function AppContent() {
                 <MemoizedCodeEditor />
               </ResizablePanel>
               {renderResizableHandle("vertical")}
-              <ResizablePanel
-                defaultSize={15}
-                minSize={10}
-                style={{ minHeight: 0 }}
+              <ResizablePanelGroup
+                direction="vertical"
+                className="flex h-full w-full"
+                onLayout={() => {
+                  // Ask terminal to refit after drag
+                  const term = document.querySelector(".xterm");
+                  if (term) {
+                    setTimeout(() => {
+                      window.dispatchEvent(new Event("resize"));
+                    }, 50);
+                  }
+                }}
               >
-                <MemoizedTerminal />
-              </ResizablePanel>
+                <ResizablePanel
+                  defaultSize={85}
+                  minSize={20}
+                  style={{ minHeight: 0 }}
+                >
+                  <MemoizedCodeEditor />
+                </ResizablePanel>
+                {renderResizableHandle("vertical")}
+                <ResizablePanel
+                  defaultSize={15}
+                  minSize={10}
+                  style={{ minHeight: 0 }}
+                >
+                  <MemoizedTerminal />
+                </ResizablePanel>
+              </ResizablePanelGroup>
             </ResizablePanelGroup>
           </ResizablePanel>
           {renderResizableHandle("horizontal")}
